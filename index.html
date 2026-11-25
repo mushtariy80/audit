@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biznes tizimi auditi</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Yagona qora-oltin dunyo (TIZIM brendi). G'ildirak sahifadagi yagona yorqin element, qolgani sokin.
+   Tartib: chapga tekislangan matn, audit ekranida chapda jonli g'ildirak, o'ngda savollar. */
+:root{
+  color-scheme:dark;
+  --ink:#0E0D0B; --panel:#17150F; --raise:#201D15; --line:#2E2A1F;
+  --text:#F3EEE2; --muted:#A39A86; --gold:#E2C067; --gold-deep:#B8923A;
+  --ok:#58C48D; --mid:#F08A3C; --bad:#EF5B4C; --na:#6F6858;
+  --display:"Unbounded","Onest",system-ui,sans-serif;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+body{min-height:100vh;overflow-x:hidden}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+canvas{display:block;width:100%}
+
+/* ---------- yuqori qator ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0}
+.brand{display:flex;align-items:baseline;gap:10px;background:none;border:0;padding:0;text-align:left}
+.brand b{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.04em;color:var(--gold)}
+.brand span{font-size:13px;color:var(--muted)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--muted)}
+.ghost:hover{color:var(--text);border-color:var(--muted)}
+.ghost.arm{color:var(--bad);border-color:var(--bad)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:14px 26px;font-weight:700;font-size:16px;background:var(--gold);color:#17130A;text-decoration:none;transition:transform .12s ease,background .15s}
+.btn:hover{background:#EDD08A}
+.btn:active{transform:scale(.97)}
+.btn.line{background:none;color:var(--text);border:1px solid var(--line);font-weight:600}
+.btn.line:hover{border-color:var(--gold);background:none}
+.btn.sm{padding:10px 18px;font-size:14px}
+
+/* ---------- bosh ekran ---------- */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;padding:28px 0 40px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5vw,54px);line-height:1.08;letter-spacing:-.01em}
+.hero .lead{margin-top:18px;font-size:18px;color:var(--muted);max-width:44ch}
+.hero .lead b{color:var(--text);font-weight:600}
+.start{margin-top:26px;display:flex;flex-direction:column;gap:12px;max-width:380px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input,.task input,.q textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px}
+.field input:focus,.task input:focus,.q textarea:focus{outline:0;border-color:var(--gold)}
+.resume{font-size:14px;color:var(--muted)}
+.stage{position:relative;display:flex;flex-direction:column;border-radius:22px;background:linear-gradient(180deg,#191610 0%,#100F0C 100%);border:1px solid var(--line);overflow:hidden}
+.stage canvas{height:300px}
+.stage .cap{order:-1;padding:14px 18px 0;min-height:36px;font-size:13px;color:var(--muted)}
+.stage .cap b{color:var(--gold);font-weight:600}
+
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;padding:36px 0;border-top:1px solid var(--line)}
+.info h2,.blk h2{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:14px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:14px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:10px;color:var(--muted);font-size:15px}
+.steps li::before{content:counter(s);font-family:var(--display);font-weight:700;color:var(--gold);font-size:15px;line-height:1.55}
+.steps b{color:var(--text);font-weight:600}
+.keys{display:grid;gap:12px;font-size:15px;color:var(--muted)}
+.keys div{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:start}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700;text-align:center}
+.pill.p-h{background:rgba(88,196,141,.16);color:var(--ok)}
+.pill.p-q{background:rgba(240,138,60,.16);color:var(--mid)}
+.pill.p-y{background:rgba(239,91,76,.16);color:var(--bad)}
+.pill.p-n{background:rgba(111,104,88,.25);color:#B9B09B}
+.scale{display:grid;gap:10px;font-size:14px;color:var(--muted)}
+.scale div{display:grid;grid-template-columns:34px 1fr;gap:10px}
+.scale i{font-family:var(--display);font-style:normal;font-weight:800;font-size:20px;color:var(--gold);line-height:1.2}
+.scale b{display:block;color:var(--text);font-weight:600}
+.foot{padding:22px 0 40px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 18px}
+.foot a{color:var(--gold);text-decoration:none}
+
+/* ---------- audit ---------- */
+.audit{display:grid;grid-template-columns:300px 1fr;gap:36px;align-items:start;padding-bottom:60px}
+.side{position:sticky;top:16px;display:grid;gap:14px}
+.side .wheel{height:270px}
+.meter{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.meter b{color:var(--text);font-variant-numeric:tabular-nums}
+.bar{height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:4px;transition:width .35s ease}
+.secs{display:grid;gap:2px}
+.sec{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;width:100%;background:none;border:0;border-left:2px solid transparent;padding:8px 10px;text-align:left;font-size:14px;color:var(--muted)}
+.sec small{font-size:12px;font-variant-numeric:tabular-nums}
+.sec:hover{color:var(--text)}
+.sec.on{color:var(--text);border-left-color:var(--gold);background:var(--panel);font-weight:600}
+.sec.done small{color:var(--ok)}
+.mini{display:none}
+
+.shead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.shead h2{font-family:var(--display);font-weight:700;font-size:clamp(20px,3vw,28px);line-height:1.2}
+.shead span{font-size:14px;color:var(--muted)}
+.qs{display:grid}
+.q{display:grid;grid-template-columns:44px 1fr;gap:6px;padding:22px 0;border-bottom:1px solid var(--line);scroll-margin-top:150px}
+.q-n{font-family:var(--display);font-weight:700;font-size:15px;color:var(--na);padding-top:2px;font-variant-numeric:tabular-nums;transition:color .2s}
+.q[data-v="h"] .q-n{color:var(--ok)} .q[data-v="q"] .q-n{color:var(--mid)} .q[data-v="y"] .q-n{color:var(--bad)}
+.q h3{font-size:17px;font-weight:600;line-height:1.4}
+.core{display:inline-block;margin-left:8px;border:1px solid var(--gold-deep);color:var(--gold);border-radius:6px;padding:0 7px;font-size:11.5px;font-weight:600;vertical-align:2px;white-space:nowrap}
+.q-h{margin-top:6px;font-size:14.5px;color:var(--muted);max-width:68ch}
+.ans{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.a{min-width:96px;display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 16px;font-weight:700;font-size:15px;transition:transform .12s ease,background .15s,border-color .15s}
+.a small{font-weight:500;font-size:11.5px;color:var(--muted)}
+.a:hover{border-color:var(--muted)}
+.a:active{transform:scale(.95)}
+.a[aria-checked="true"]{color:#14110A}
+.a[aria-checked="true"] small{color:rgba(20,17,10,.7)}
+.a[data-v="h"][aria-checked="true"]{background:var(--ok);border-color:var(--ok)}
+.a[data-v="q"][aria-checked="true"]{background:var(--mid);border-color:var(--mid)}
+.a[data-v="y"][aria-checked="true"]{background:var(--bad);border-color:var(--bad)}
+.a[data-v="n"]{min-width:0;background:none;border-style:dashed;font-weight:500;font-size:13.5px;color:var(--muted);justify-content:center}
+.a[data-v="n"][aria-checked="true"]{background:var(--na);border-color:var(--na);border-style:solid;color:var(--text)}
+.note-t{margin-top:10px;background:none;border:0;padding:0;font-size:13.5px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.note-t:hover{color:var(--gold)}
+.q textarea{margin-top:10px;min-height:64px;resize:vertical;max-width:68ch}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:28px;flex-wrap:wrap}
+
+/* ---------- natija ---------- */
+.res{padding-bottom:70px}
+.rhead{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:32px;align-items:center;padding:10px 0 34px}
+.who{font-size:14px;color:var(--muted);margin-bottom:10px}
+.grade{display:flex;align-items:center;gap:20px}
+.grade .L{font-family:var(--display);font-weight:800;font-size:clamp(88px,14vw,150px);line-height:.9;color:var(--gold)}
+.grade .pc{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.4vw,42px);line-height:1;font-variant-numeric:tabular-nums}
+.grade .pts{margin-top:8px;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rhead h1{margin-top:18px;font-family:var(--display);font-weight:700;font-size:clamp(20px,2.8vw,28px);line-height:1.2}
+.rhead .gd{margin-top:10px;color:var(--muted);max-width:50ch}
+.warn{margin:0 0 26px;padding:14px 16px;border:1px solid var(--mid);border-radius:var(--r);display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:15px}
+.blk{padding:32px 0;border-top:1px solid var(--line)}
+.blk > p.sub{color:var(--muted);font-size:15px;margin:-6px 0 18px;max-width:70ch}
+.rows{display:grid;gap:4px}
+.row{display:grid;grid-template-columns:minmax(120px,270px) 1fr 54px 26px;gap:14px;align-items:center;width:100%;background:none;border:0;border-radius:10px;padding:10px 8px;text-align:left;font-size:15px}
+.row:hover{background:var(--panel)}
+.row .tr{height:10px;border-radius:10px;background:var(--line);overflow:hidden}
+.row .tr i{display:block;height:100%;border-radius:10px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.row .pv{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.row .gl{font-family:var(--display);font-weight:700;font-size:13px;color:var(--muted)}
+.row.weak .nm::after{content:"eng zaif";margin-left:8px;font-size:11.5px;color:var(--bad);border:1px solid var(--bad);border-radius:6px;padding:0 6px;white-space:nowrap}
+.risks{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.risks li{display:grid;grid-template-columns:10px 1fr;gap:12px;align-items:start;font-size:15.5px}
+.risks li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--bad);margin-top:8px}
+.risks small{display:block;color:var(--muted);font-size:13.5px}
+.grp{margin-top:24px}
+.grp h3{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;margin-bottom:6px}
+.grp h3 i{width:10px;height:10px;border-radius:3px}
+.grp h3 span{font-weight:500;color:var(--muted)}
+.task{display:grid;grid-template-columns:1fr 170px 150px;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.task .tx{font-size:15.5px;font-weight:500}
+.task .tx small{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:2px}
+.task input{padding:8px 10px;font-size:14px}
+.more{margin-top:16px}
+.acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.cta{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px}
+.cta h2{margin:0 0 6px}
+.cta p{color:var(--muted);font-size:15px;max-width:56ch}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--text);color:var(--ink);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.view{animation:in .35s ease}
+@keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- telefon ---------- */
+@media (max-width:860px){
+  .wrap{padding:0 16px}
+  .brand span{display:none}
+  .hero{grid-template-columns:1fr;gap:22px;padding-top:8px}
+  .hero .stage{order:-1}
+  .stage canvas{height:220px}
+  .start{max-width:none}
+  .info{grid-template-columns:1fr;gap:30px}
+  .audit{grid-template-columns:1fr;gap:18px}
+  .side{top:0;z-index:5;margin:0 -16px;padding:10px 16px 8px;background:rgba(14,13,11,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);gap:8px}
+  .side .wheel,.side .meter{display:none}
+  .mini{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center}
+  .mini canvas{height:58px;width:58px}
+  .mini .mt{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px}
+  .mini .mt b{color:var(--text)}
+  .secs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+  .secs::-webkit-scrollbar{display:none}
+  .sec{width:auto;flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;white-space:nowrap}
+  .sec.on{border-color:var(--gold);background:var(--gold);color:#17130A}
+  .sec.on small,.sec.on.done small{color:rgba(23,19,10,.7)}
+  .q{grid-template-columns:1fr;padding:20px 0}
+  .q-n{font-size:13px}
+  .a{flex:1;min-width:0;padding:10px 8px}
+  .a[data-v="n"]{flex-basis:100%;padding:8px}
+  .rhead{grid-template-columns:1fr;gap:20px}
+  .rhead .stage{order:-1}
+  .row{grid-template-columns:1fr 50px 22px;gap:6px 10px;padding:10px 4px}
+  .row .tr{grid-column:1/-1;grid-row:2}
+  .task{grid-template-columns:1fr 1fr;gap:8px 10px}
+  .task .tx{grid-column:1/-1}
+  .tg .dup{display:none}
+  .tg .res,.tg .audit{padding-bottom:30px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{
+  :root{--ink:#fff;--panel:#fff;--raise:#fff;--line:#ccc;--text:#111;--muted:#444;--gold:#8A6A1C}
+  .top .ghost,.acts,.cta,.more,.warn .btn,.toast{display:none!important}
+  .stage{background:#1a1712}
+  .task{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <button class="brand" id="home-link" type="button" aria-label="Bosh sahifa"><b>TIZIM</b><span>Biznes tizimi auditi</span></button>
+    <button class="ghost" id="reset" type="button" hidden>Qayta boshlash</button>
+  </header>
+
+  <!-- ================= BOSH EKRAN ================= -->
+  <main id="v-home" class="view">
+    <section class="hero">
+      <div>
+        <h1>Biznesingiz qanday g'ildirakda yuryapti?</h1>
+        <p class="lead"><b>80 ta savol, 15–20 daqiqa.</b> Har bir kamchilik g'ildirakni qiyshaytiradi. Yakunda biznesingiz qanchalik ravon yurishini va birinchi navbatda nimani tuzatish kerakligini ko'rasiz.</p>
+        <div class="start">
+          <div class="field">
+            <label for="company">Kompaniya nomi (ixtiyoriy)</label>
+            <input id="company" type="text" autocomplete="organization" placeholder="Masalan: Oltin Qanot MChJ" maxlength="60">
+          </div>
+          <button class="btn" id="start" type="button">Auditni boshlash</button>
+          <p class="resume" id="resume" hidden></p>
+        </div>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <canvas id="cv-home"></canvas>
+        <div class="cap" id="cap-home"></div>
+      </div>
+    </section>
+
+    <section class="info">
+      <div>
+        <h2>Qanday ishlaydi</h2>
+        <ol class="steps">
+          <li><span><b>Javob bering.</b> 8 bo'lim bo'yicha savollarga halol javob tanlang.</span></li>
+          <li><span><b>G'ildirakni kuzating.</b> U har bir javobingizdan keyin o'zgaradi.</span></li>
+          <li><span><b>Rejani oling.</b> Dastur zaif joylarni ustuvorlik bo'yicha saralab beradi.</span></li>
+        </ol>
+      </div>
+      <div>
+        <h2>Javob mezoni</h2>
+        <div class="keys">
+          <div><span class="pill p-h">Ha, 10</span><span>Yozma shaklda bor va amalda izchil ishlaydi.</span></div>
+          <div><span class="pill p-q">Qisman, 5</span><span>Bor, lekin yozilmagan yoki har doim ham ishlamaydi.</span></div>
+          <div><span class="pill p-y">Yo'q, 0</span><span>Yo'q yoki faqat rahbarning boshida.</span></div>
+          <div><span class="pill p-n">Tegishli emas</span><span>Biznesingizda bunday jarayon yo'q. Savol hisobga kirmaydi.</span></div>
+        </div>
+      </div>
+      <div>
+        <h2>Natija shkalasi</h2>
+        <div class="scale" id="scale"></div>
+      </div>
+    </section>
+    <footer class="foot">
+      <span>Kozimxon To'rayev metodologiyasi asosida. 21 yillik xalqaro tajriba.</span>
+      <span>Javoblaringiz faqat shu qurilmada saqlanadi.</span>
+    </footer>
+  </main>
+
+  <!-- ================= AUDIT ================= -->
+  <main id="v-audit" class="view audit" hidden>
+    <aside class="side">
+      <canvas class="wheel" id="cv-side" aria-hidden="true"></canvas>
+      <div class="mini">
+        <canvas id="cv-mini" aria-hidden="true"></canvas>
+        <div>
+          <div class="mt"><span id="mini-sec"></span><b id="mini-cnt"></b></div>
+          <div class="bar"><i id="mini-bar"></i></div>
+        </div>
+      </div>
+      <div class="meter"><span>Javob berildi</span><b id="cnt"></b></div>
+      <div class="bar meterbar"><i id="bar"></i></div>
+      <nav class="secs" id="secs" aria-label="Bo'limlar"></nav>
+    </aside>
+    <section>
+      <div class="shead"><h2 id="sec-title"></h2><span id="sec-meta"></span></div>
+      <div class="qs" id="qs"></div>
+      <div class="nav">
+        <button class="btn line" id="prev" type="button">Oldingi bo'lim</button>
+        <button class="btn dup" id="next" type="button">Keyingi bo'lim</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= NATIJA ================= -->
+  <main id="v-result" class="view res" hidden>
+    <div class="warn" id="warn" hidden><span id="warn-t"></span><button class="btn sm" id="warn-b" type="button">Davom ettirish</button></div>
+    <section class="rhead">
+      <div>
+        <p class="who" id="who"></p>
+        <div class="grade">
+          <div class="L" id="g-l">A</div>
+          <div><div class="pc"><span id="g-pc">0</span>%</div><div class="pts" id="g-pts"></div></div>
+        </div>
+        <h1 id="g-t"></h1>
+        <p class="gd" id="g-d"></p>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <canvas id="cv-res"></canvas>
+        <div class="cap" id="cap-res"></div>
+      </div>
+    </section>
+
+    <section class="blk">
+      <h2>Bo'limlar bo'yicha natija</h2>
+      <p class="sub">Bo'limni bosing va javoblarni qayta ko'rib chiqing.</p>
+      <div class="rows" id="rows"></div>
+    </section>
+
+    <section class="blk" id="risk-blk" hidden>
+      <h2>Poydevordagi bo'shliqlar</h2>
+      <p class="sub">Bu tizimlarsiz qolganlari ishlamaydi. Ishni shulardan boshlang.</p>
+      <ul class="risks" id="risks"></ul>
+    </section>
+
+    <section class="blk">
+      <h2>Harakatlar rejasi</h2>
+      <p class="sub" id="plan-sub"></p>
+      <div id="plan"></div>
+      <button class="btn line sm more" id="more" type="button" hidden></button>
+    </section>
+
+    <section class="blk">
+      <div class="acts">
+        <button class="btn dup" id="copy" type="button">Hisobotni nusxalash</button>
+        <button class="btn line" id="print" type="button" hidden>PDF qilib saqlash</button>
+        <button class="btn line" id="edit" type="button">Javoblarni o'zgartirish</button>
+      </div>
+    </section>
+
+    <section class="blk">
+      <div class="cta">
+        <div>
+          <h2>Tizimni birga quramizmi?</h2>
+          <p>Natijani Kozimxon To'rayev jamoasiga yuboring. Zaif bo'limlar bo'yicha keyingi qadamni birga belgilaysiz. Telefon: +998 91 008 05 09</p>
+        </div>
+        <a class="btn" id="contact" href="https://t.me/KozimxonTuraev" target="_blank" rel="noopener">Telegramda yozish</a>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== AUDIT MAZMUNI: 8 bo'lim, 80 savol, maksimal 800 ball =====
+   Har savol: [savol, standart (HA javobi nimani anglatadi), birinchi qadam, ustuvorlik 1-3]
+   Ustuvorlik 3 = poydevor savol. Usiz boshqa tizimlar ishlamaydi. */
+const SECTIONS = [
+{ id:"s1", name:"Strategiya va maqsadlar", short:"Strategiya", q:[
+ ["Kompaniyangizning missiyasi aniq ishlab chiqilgan va yozib qo'yilganmi?","Missiya yozma shaklda bor va xodimlarga to'liq tushuntirilgan.","Missiyani bir-ikki jumlada yozing va butun jamoaga tushuntiring.",2],
+ ["Xodimlar missiyani to'liq tushunadi va unga amal qiladimi?","Har bir xodim missiyani o'z so'zlari bilan aytib bera oladi.","Missiyani har bir bo'limda muhokama qiling. Xodimlar uni o'z so'zlari bilan aytib bersin.",1],
+ ["Kompaniya uchun 3–5 yillik strategik maqsad ishlab chiqilganmi?","Maqsad raqam va sana bilan yozilgan: X yilga Y ta filial, Z mln aylanma.","3–5 yillik maqsadni raqam va sana bilan yozib chiqing.",3],
+ ["Strategiyani amalga oshirish uchun yillik maqsadlar aniqlanganmi?","Yillik OKR yoki maqsadlar rejasi yozma shaklda mavjud.","Strategiyadan kelib chiqib yillik maqsadlar rejasini tuzing.",2],
+ ["Har bir bo'lim maqsadi kompaniya strategiyasiga bog'langanmi?","Savdo, marketing, ishlab chiqarish maqsadlari asosiy strategiyaga xizmat qiladi.","Har bir bo'lim maqsadini kompaniyaning yillik maqsadiga bog'lab qayta yozing.",2],
+ ["Kompaniya qadriyatlari yozma shaklda mavjud va amaliyotda yashaydimi?","Qadriyatlar qaror qabul qilishda va kundalik ishda qo'llanadi.","Qadriyatlarni yozing va har biriga kundalik ishdan aniq misol biriktiring.",1],
+ ["Maqsad qo'yishda SMART tizimidan foydalaniladimi?","Har bir maqsad aniq, o'lchanadigan, erishsa bo'ladigan, aktual va muddatli.","Joriy maqsadlarni SMART mezonlari bo'yicha qayta yozing.",1],
+ ["Qaror qabul qilishda kim vakolatli ekani aniq belgilangan va yozib qo'yilganmi?","Kim qanday miqdordagi qarorga vakolatli ekani yozma hujjatda ko'rsatilgan.","Vakolatlar jadvalini tuzing: kim, qaysi masalada, qaysi summagacha qaror qiladi.",2],
+ ["Har bir bo'limdan oy oxirida reja-fakt hisoboti olinadi va tahlil qilinadimi?","Reja qo'yilgan, fakt o'lchangan, farq tahlil qilingan.","Har bir bo'lim uchun oylik reja-fakt hisobot shaklini joriy qiling.",2]
+]},
+{ id:"s2", name:"Tashkiliy tuzilma va standartlar", short:"Tuzilma va SOP", q:[
+ ["Tashkiliy tuzilma (org struktura) shakllantirilgan va xodimlarga tushuntirilganmi?","Grafik ko'rinishda bor. Kim kimga bo'ysunishi har bir xodimga aniq.","Org strukturani chizing va har bir xodimga tushuntiring.",2],
+ ["Bo'limlar bir-biridan ajratilgan va o'zaro aloqalari qoidalar bilan tartibga solinganmi?","Bo'limlar orasida mas'uliyat chegarasi aniq belgilangan.","Bo'limlar orasidagi mas'uliyat chegaralarini yozma qoida qilib belgilang.",2],
+ ["Har bir xodim uchun lavozim doirasidagi vazifalar batafsil yozilganmi?","Lavozim yo'riqnomasi bor: vazifalar, javobgarlik va mas'uliyat chegarasi aniq.","Har bir lavozim uchun lavozim yo'riqnomasini yozing.",3],
+ ["Har bir lavozim uchun soft va hard skills aniq belgilangan va yozilganmi?","Nomzod tanlash va baholashda texnik va insoniy ko'nikmalar bo'yicha standart mezon bor.","Har bir lavozim uchun kerakli ko'nikmalar ro'yxatini tuzing.",1],
+ ["Asosiy ish jarayonlari uchun SOPlar ishlab chiqilganmi?","Har bir jarayon bosqichma-bosqich, rasm, video va real misollar bilan tushuntirilgan.","Eng muhim 5 ta jarayondan boshlab SOP yozing.",3],
+ ["Yulduz xodimlar tajribasi hujjatga ko'chirilgan va barchaga o'rgatilganmi?","Eng yaxshi xodimlarning ish usuli hujjatlashtirilib, standartga aylantirilgan.","Eng yaxshi xodimlarning ish usulini yozib oling va standart qilib tasdiqlang.",2],
+ ["Xodimlar SOPlarni amalda qo'llaydimi?","SOPga amal qilish nazorat qilinadi va xodim KPIsiga ta'sir qiladi.","SOPga amal qilishni nazorat qiling va uni KPIga bog'lang.",2],
+ ["SOPlar doimiy yangilab boriladimi?","Oxirgi yangilanish sanasi yozilgan, mas'ul shaxs belgilangan.","Har bir SOPga mas'ul va yangilash muddatini belgilang.",1],
+ ["Ko'rsatma va qoidalar ish joyida ko'rinadigan joyga joylashtirilganmi?","Vizual boshqaruv bor: cheklist, SOP, poster va qoidalar xodim ishlayotgan joyda.","Asosiy cheklist va qoidalarni ish joyiga osib qo'ying.",1],
+ ["Vazifalarni to'g'ri ketma-ketlikda bajarish uchun cheklistlar bormi?","Har bir jarayon uchun bajarildi/bajarilmadi cheklisti ishlab chiqilgan.","Takrorlanadigan jarayonlar uchun cheklistlar tuzing.",2],
+ ["Muhim jarayonlar uchun jarayon egasi (owner) belgilanganmi?","Har bir jarayonga bitta mas'ul shaxs biriktirilgan.","Har bir muhim jarayonga bitta mas'ul shaxsni yozma ravishda biriktiring.",2]
+]},
+{ id:"s3", name:"Yollash, baholash va motivatsiya", short:"Baholash", q:[
+ ["Ishga olish jarayoni (recruitment) uchun aniq standartlar yozilganmi?","E'lon, filtrlash, intervyu, test, qaror: har bir bosqich standartlashgan.","Ishga olish bosqichlarini va har biridagi mezonlarni yozing.",2],
+ ["Onboarding dasturi mavjud va yangi xodimlar uchun majburiymi?","1-hafta, 1-oy, 3-oy: nimani, kimdan o'rganishi va qanday baholanishi aniq.","Yangi xodim uchun 1-hafta, 1-oy, 3-oy rejasini ishlab chiqing.",3],
+ ["Lavozim yo'riqnomalari so'nggi 3 oy ichida yangilanganmi?","Yo'riqnomalar bozor, kompaniya va kutilgan natijalarga qarab har 3 oyda yangilanadi.","Yo'riqnomalarni har chorakda ko'rib chiqish tartibini kiriting.",1],
+ ["Xodimlarning ish natijalarini baholash (performance review) tizimi bormi?","Kamida har 3 oyda 1:1 suhbatda aniq mezonlar bo'yicha baholanadi.","Choraklik performance review suhbatlarini boshlang.",2],
+ ["Har bir lavozim uchun KPIlar ishlab chiqilgan va har oyda o'lchanadimi?","KPI: miqdor, sifat, vaqt, mas'ul. Har oyda hisobot va tahlil.","Har bir lavozim uchun 3–5 ta KPI belgilang va har oy o'lchang.",3],
+ ["KPI natijalari asosida mukofot va jazo tizimi bormi?","Ball, natija, bonus yoki jarima aniq formulada. Xodimlarga tushuntirilgan.","KPI natijasini bonus formulasiga bog'lang va xodimlarga tushuntiring.",2],
+ ["Maosh va imtiyozlar tizimi aniq me'yorlar asosida ishlab chiqilganmi?","Xodim o'z maoshini o'zi hisoblab chiqa oladi.","Maosh hisoblash formulasini yozing va har bir xodimga tushuntiring.",2],
+ ["Xodimlarning kundalik vazifalariga ketadigan vaqt o'lchanadimi?","Time-tracking yuritiladi: raqamli yoki qo'lda.","Asosiy vazifalar bo'yicha vaqt hisobini yuritishni boshlang.",1],
+ ["Bitta mahsulot yoki xizmat uchun ketadigan vaqt standarti belgilanganmi?","Standart vaqt normasi bor. Reja va faktni solishtirish mumkin.","Asosiy mahsulot yoki xizmat uchun vaqt normasini o'lchab belgilang.",1],
+ ["Har bir xodimning kompaniyaga keltirayotgan foydasi o'lchanadimi?","Xodimga ketgan xarajat va u keltirgan daromad solishtiriladi.","Har bir xodim bo'yicha xarajat va keltirgan daromad hisobini yuriting.",1]
+]},
+{ id:"s4", name:"Rivojlantirish va ushlab qolish", short:"Rivojlanish", q:[
+ ["Xodim ehtiyojlarini aniqlash mexanizmlari bormi?","Anketa, 1:1 suhbat, exit interview muntazam o'tkaziladi.","Xodimlar ehtiyojini aniqlash uchun choraklik anketa o'tkazing.",1],
+ ["Grading tizimi (tajriba va natijaga qarab o'sish yo'li) ishlab chiqilganmi?","Junior, Middle, Senior, Lead: har bosqich uchun talablar aniq.","Lavozimlar bo'yicha o'sish bosqichlari va talablarini yozing.",2],
+ ["Xodimlarni rivojlantirish uchun trening rejalari bormi?","Yillik o'quv rejasi, byudjet va mas'ul shaxs belgilangan.","Yillik o'quv rejasi va byudjetini tuzing.",1],
+ ["Xodimlar ko'nikmasi muntazam baholanadi va rivojlantiriladimi?","Skill matrix bor. Har 6 oyda ko'nikmalar o'lchanadi va bo'shliqlar aniqlanadi.","Skill matrix tuzing va har 6 oyda yangilang.",2],
+ ["Treninglarning xodim samaradorligiga ta'siri o'lchanadimi?","O'qishdan oldingi va keyingi natijalar solishtiriladi.","Har bir treningdan oldin va keyin natijani o'lchang.",1],
+ ["Yuqori lavozimlar uchun ichki rezerv tayyorlash tizimi bormi?","Succession plan bor: kim qaysi lavozimga tayyorlanayotgani aniq.","Asosiy lavozimlar uchun o'rinbosar nomzodlarni belgilang.",2],
+ ["Rotatsiya tizimi (xodimni boshqa vazifada sinash) yo'lga qo'yilganmi?","Xodimlar rejali ravishda boshqa vazifalarda sinab ko'riladi.","Asosiy lavozimlar uchun rotatsiya jadvalini tuzing.",1],
+ ["Xodim qo'nimsizligi (tekuchka) ko'rsatkichi o'lchanadimi?","Oylik va yillik hisobot: necha kishi keldi, ketdi, nima sababdan.","Xodim qo'nimsizligi hisobotini har oy yuriting.",2],
+ ["Xodimlarning ketish sabablari doimiy tahlil qilinadimi?","Exit interview o'tkaziladi va xulosa chiqariladi.","Har bir ketayotgan xodim bilan exit interview o'tkazing.",2]
+]},
+{ id:"s5", name:"Moliya va nazorat", short:"Moliya", q:[
+ ["Foyda va zarar (P&L) hisoboti har oy yuritiladimi?","Har oy aniq raqamda: qancha tushdi, qancha ketdi, qancha qoldi.","P&L hisobotini har oy yuritishni yo'lga qo'ying.",3],
+ ["Pul oqimi (cash-flow) monitoringi ishlaydimi?","Haftalik: qancha pul bor, qancha keladi, qancha ketadi. Prognoz bilan.","Haftalik cash-flow jadvali va prognozini yuriting.",3],
+ ["Biznes puli va egasining shaxsiy puli bir-biridan ajratilganmi?","Egasi belgilangan maosh yoki dividend oladi. Kassadan shaxsiy xarajat qilinmaydi.","Shaxsiy va biznes pullarini ajrating. O'zingizga belgilangan maosh tayinlang.",3],
+ ["Byudjet tuzish va nazorat jarayoni yo'lga qo'yilganmi?","Yillik byudjet, oylik reja va haftalik monitoring bor.","Yillik byudjet tuzing va oylik nazoratini boshlang.",1],
+ ["Debitor va kreditor qarzdorlik hisoboti yuritiladimi?","Kim bizga qancha qarz, biz kimga qancha qarzmiz: har oy aniq.","Debitor va kreditor qarzlar ro'yxatini har oy yangilang.",2],
+ ["Moliyaviy holat ko'rsatkichlari bitta dashboardda kuzatiladimi?","Daromad, xarajat, foyda, likvidlik har oy bitta dashboardda.","Asosiy moliyaviy ko'rsatkichlar uchun bitta dashboard yarating.",2],
+ ["Moliyaviy protseduralar (qarz, to'lovlar, byudjet) hujjatlashtirilganmi?","Kim qancha summaga to'lov yoki qarz chiqarishi mumkinligi yozma qoidada.","To'lov va qarz berish qoidalarini yozing.",2],
+ ["Xarajatlarni nazorat qilish va optimallashtirish mexanizmi bormi?","Har bir xarajat toifasi bo'yicha reja, fakt va og'ish nazorat qilinadi.","Xarajatlarni toifalarga ajrating va reja-fakt nazoratini yuriting.",2],
+ ["Iqtisodiy stress-test yoki senariy tahlili o'tkaziladimi?","Savdo 30% tushsa, biznes necha oy yashashi hisoblangan.","Savdo 30% tushgan holat uchun hisob-kitob qiling.",1],
+ ["Suiiste'molga qarshi ichki nazorat (checks and balances) bormi?","Pul va tovar bilan bog'liq jarayonni bir kishi yakka o'zi boshqarmaydi.","Pul va tovar jarayonlarida ikki kishilik nazoratni joriy qiling.",2]
+]},
+{ id:"s6", name:"Jarayonlar, sifat va texnologiya", short:"Jarayonlar", q:[
+ ["Ish jarayonlarida ERP, POS kabi tizimlardan foydalaniladimi?","Hisob-kitob, zaxira va savdo raqamli tizimda yuritiladi.","Hisob-kitob va savdoni raqamli tizimga o'tkazing.",2],
+ ["Xodimlar ish vaqti avtomatik tizim orqali kuzatiladimi?","Face ID, geolokatsiya yoki ilova: kim qachon kelgani va ketgani aniq.","Ish vaqtini avtomatik qayd qiladigan tizim o'rnating.",1],
+ ["Ombor va zaxira nazorati tizimi yo'lga qo'yilganmi?","Qancha bor, qancha sotildi, necha kunlik zaxira: avtomatik hisobot.","Ombor hisobini raqamli tizimda yuriting va har oy aylanmani tahlil qiling.",2],
+ ["Mahsulot yoki xizmat sifatini nazorat qilish protokollari mavjudmi?","Sifat standartlari, tekshirish bosqichlari va mas'ul shaxs belgilangan.","Sifat standartlari va tekshirish bosqichlarini yozing.",2],
+ ["Brak va sifat nazorati bo'yicha hisobot yuritiladimi?","Brak foizi, sababi va mas'uli har oyda aniqlanadi.","Brak va nuqsonlar hisobotini har oy yuriting.",1],
+ ["Ma'lumotlarni himoya qilish va maxfiylik qoidalari ishlab chiqilganmi?","Kim qaysi ma'lumotga kira olishi aniq belgilangan.","Ma'lumotlarga kirish huquqlari jadvalini tuzing.",1],
+ ["Xatolik va muammolarni qayd etish va tahlil qilish tizimi bormi?","Xatolik yoziladi, tahlil qilinadi, takrorlanmasligi uchun chora ko'riladi.","Xatoliklar jurnalini oching va har oy tahlil qiling.",2],
+ ["Ichki audit muntazam o'tkaziladimi?","Har chorakda o'z-o'zini tekshirish o'tkaziladi, natija hujjatlashtiriladi.","Har chorakda ichki audit o'tkazish jadvalini belgilang.",1],
+ ["Audit va tekshiruv topilmalari bo'yicha harakat rejasi bajariladimi?","Topilma, harakat rejasi, mas'ul, muddat, nazorat: zanjir ishlaydi.","Har bir audit topilmasiga mas'ul va muddat belgilang.",1],
+ ["Isroflarni kamaytirish bo'yicha tahlillar o'tkaziladimi?","Lean yoki kaizen usulida vaqt, pul va kuch isrofi aniqlanadi.","Bitta jarayonni tanlang va undagi isroflarni kaizen usulida tahlil qiling.",1]
+]},
+{ id:"s7", name:"Boshqaruv va madaniyat", short:"Boshqaruv", q:[
+ ["Rahbar 1 oy ishda bo'lmasa, kompaniya natijasi saqlanib qoladimi?","Kundalik qarorlar rahbarsiz qabul qilinadi. Savdo va sifat tushmaydi.","Faqat o'zingiz hal qiladigan ishlar ro'yxatini tuzing va ularni bosqichma-bosqich topshiring.",3],
+ ["Delegatsiya va vakolat berish madaniyati amalda bormi?","Rahbar hamma ishni o'zi qilmaydi. Vakolatlar aniq taqsimlangan.","Har hafta bitta vazifani natija mezoni bilan birga topshiring.",3],
+ ["Ichki kommunikatsiya kanallari samarali ishlaydimi?","Kim kimga qanday murojaat qilishi uchun rasmiy kanal belgilangan.","Rasmiy kommunikatsiya kanallari va qoidalarini belgilang.",2],
+ ["Rahbarlar xodimlar bilan muntazam 1:1 uchrashuv o'tkazadimi?","Kamida oyda bir marta: maqsad, muammo va rivojlanish muhokama qilinadi.","Oylik 1:1 uchrashuvlar jadvalini tuzing.",2],
+ ["Majburiy yig'ilishlar va ularning tartibi belgilanganmi?","Qaysi yig'ilish, qachon, kim qatnashadi, necha daqiqa: standart bor.","Yig'ilishlar jadvali va har birining kun tartibini standartlang.",2],
+ ["O'zgarishlarni joriy etish tartibi bor va xodimlar yangi jarayonga o'qitiladimi?","Nega, qanday, kim o'rgatadi: bosqichlar aniq. Trening, amaliyot, nazorat, tuzatish.","Har bir yangi jarayon uchun joriy etish va o'qitish rejasini tuzing.",1],
+ ["Xodimlardan takliflar muntazam olinadi va amalga oshiriladimi?","Kaizen daftari yoki anketa bor. G'oya, baholash, sinov, joriy qilish sikli ishlaydi.","Takliflar tizimini oching va har bir taklifga javob bering.",1],
+ ["Qarorlar ma'lumot va faktlar asosida qabul qilinadimi?","Qaror his-tuyg'uga emas, raqamlarga asoslanadi.","Har bir muhim qaror uchun raqamli asos talab qiling.",2],
+ ["KPI natijalari tahlil qilinib, harakat rejasi tuziladimi?","Tahlil, sabab, chora, mas'ul, muddat: har oy.","Oylik KPI tahlili yig'ilishini joriy qiling.",2],
+ ["Xodimlar intizomini tartibga soluvchi ichki nizom bormi?","Kechikish, xatolik, qoidabuzarlik uchun qoida va oqibatlar yozilgan.","Ichki tartib-qoidalarni yozing va xodimlarni tanishtiring.",2],
+ ["Bo'limlararo hamkorlik madaniyati shakllanganmi?","Savdo va ishlab chiqarish, marketing va HR birgalikda ishlaydi.","Bo'limlararo haftalik muvofiqlashtirish yig'ilishini joriy qiling.",1]
+]},
+{ id:"s8", name:"Marketing, savdo va mijozlar", short:"Savdo", q:[
+ ["Maqsadli mijoz portreti aniq belgilangan va yozib qo'yilganmi?","Kimga sotilishi, mijozning muammosi va xarid sababi yozma shaklda bor.","Eng foydali mijozlaringiz asosida maqsadli mijoz portretini yozing.",2],
+ ["Raqobatchilar va bozor tahlili doimiy olib boriladimi?","Har oy yoki chorakda: raqobatchi narxi, mahsuloti, pozitsiyasi tahlil qilinadi.","Choraklik raqobatchilar tahlili jadvalini yuriting.",1],
+ ["Savdo voronkasi bosqichlari belgilangan va konversiya o'lchanadimi?","Lead, muloqot, taklif, bitim: har bosqichdagi son va foiz ma'lum.","Savdo voronkasi bosqichlarini belgilang va konversiyani har hafta o'lchang.",2],
+ ["Savdo jarayoni uchun skript va standartlar bormi?","Mijoz bilan muloqot, taklif va e'tirozlarga javob standartlashgan.","Savdo skripti va e'tirozlarga javoblar to'plamini yozing.",2],
+ ["Mijozlar ma'lumoti va muloqot tarixi CRMda yuritiladimi?","Har bir mijozning tarixi, kontakti, bitimi va muloqoti bir joyda saqlanadi.","CRM tizimini joriy qiling va barcha mijozlarni kiriting.",2],
+ ["Marketing ROI hisoboti yuritiladimi?","Har bir kanal bo'yicha: sarf, lead soni, mijoz soni, daromad.","Har bir reklama kanali bo'yicha sarf va daromad hisobini yuriting.",2],
+ ["Narx siyosati va chegirmalar bo'yicha aniq qoidalar bormi?","Kim, qancha va qachon chegirma bera olishi aniq belgilangan.","Narx va chegirma qoidalarini yozing.",1],
+ ["Mijozni ushlab qolish (retention) va LTV oshirish strategiyasi bormi?","Takroriy xarid ulushi o'lchanadi, mijozni qaytarish dasturi ishlaydi.","Takroriy xaridlar ulushini o'lchang va mijozni qaytarish dasturini tuzing.",2],
+ ["Mijozlar qoniqishi (NPS yoki so'rovnoma) muntazam o'lchanadimi?","Mijoz bahosi muntazam yig'iladi va xulosa chiqariladi.","Mijozlar qoniqishini har chorakda so'rovnoma orqali o'lchang.",1],
+ ["Mijozlar shikoyati bilan ishlash tartibi ishlab chiqilganmi?","Qabul qilish, javob muddati, hal qilish, qayta tekshirish: qoida bor.","Shikoyatlar bilan ishlash tartibi va javob muddatini belgilang.",2]
+]}
+];
+const GRADES = [
+ {l:"A", min:80, range:"640–800 ball", t:"Kuchli, boshqariladigan biznes", d:"Tizim mavjud va ishlaydi. Asosiy vazifa: tizimni rivojlantirish va raqobatchilardan oldinda bo'lish."},
+ {l:"B", min:50, range:"400–639 ball", t:"Qisman tizimli, beqaror", d:"Ba'zi tizimlar bor, lekin izchil emas. Zaif joylarni mustahkamlash va tizimni to'liq joriy qilish kerak."},
+ {l:"C", min:25, range:"200–399 ball", t:"Qo'lda boshqariladigan", d:"Kompaniya o'sishi rahbar va yulduz xodimlarga bog'liq. Tizim qurish ustuvor vazifa."},
+ {l:"D", min:0,  range:"0–199 ball",  t:"Tizimsiz, shaxsga bog'langan", d:"Jiddiy xavf: biznes rahbarsiz ishlamaydi, kengaytirib bo'lmaydi. Tizim qurishni darhol boshlash kerak."}
+];
+
+
+/* ===================== SOZLAMALAR ===================== */
+const BUILD = "tg";              // "web" yoki "tg"
+const CONTACT_URL = "https://t.me/KozimxonTuraev";
+const SEND_RESULT_TO_BOT = true;        // true: natija Telegram.WebApp.sendData orqali botga yuboriladi (faqat klaviatura tugmasidan ochilgan mini app uchun)
+const STORE_KEY = "tizim-audit-v1";
+
+/* ===================== HOLAT ===================== */
+const Q = [];                           // tekis ro'yxat
+SECTIONS.forEach((s, si) => s.q.forEach(a => Q.push({ id: "q" + (Q.length + 1), n: Q.length + 1, si, t: a[0], h: a[1], act: a[2], p: a[3] })));
+SECTIONS.forEach((s, si) => { s.items = Q.filter(q => q.si === si); });
+const N = Q.length;
+const PTS = { h: 10, q: 5, y: 0 };
+let S = { a: {}, notes: {}, plan: {}, company: "", sec: 0 };
+let view = "home", planAll = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const today = () => { const d = new Date(), z = n => String(n).padStart(2, "0"); return z(d.getDate()) + "." + z(d.getMonth() + 1) + "." + d.getFullYear(); };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Telegram (faqat mini app ichida ishlaydi) */
+const TG = (window.Telegram && Telegram.WebApp && Telegram.WebApp.platform && Telegram.WebApp.platform !== "unknown") ? Telegram.WebApp : null;
+const tgv = v => TG && TG.isVersionAtLeast && TG.isVersionAtLeast(v);
+const haptic = k => { try { if (tgv("6.1")) k === "sel" ? TG.HapticFeedback.selectionChanged() : TG.HapticFeedback.notificationOccurred(k); } catch (e) {} };
+
+function load() {
+  try { const r = JSON.parse(localStorage.getItem(STORE_KEY)); if (r && r.a) S = Object.assign(S, r); } catch (e) {}
+}
+let saveT;
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {}
+  if (tgv("6.9")) { clearTimeout(saveT); saveT = setTimeout(() => { try { TG.CloudStorage.setItem("answers", Q.map(q => S.a[q.id] || "-").join("")); } catch (e) {} }, 600); }
+}
+function cloudRestore(done) {
+  if (!tgv("6.9") || Object.keys(S.a).length) return done();
+  try {
+    TG.CloudStorage.getItem("answers", (err, v) => {
+      if (!err && v && v.length === N) Q.forEach((q, i) => { if (v[i] !== "-") S.a[q.id] = v[i]; });
+      done();
+    });
+  } catch (e) { done(); }
+}
+
+/* ===================== HISOB ===================== */
+function score(items) {
+  let got = 0, max = 0, ans = 0;
+  items.forEach(q => { const v = S.a[q.id]; if (!v) return; ans++; if (v === "n") return; got += PTS[v]; max += 10; });
+  return { got, max, ans, total: items.length, pct: max ? Math.round(got / max * 100) : 0 };
+}
+const gradeOf = pct => GRADES.find(g => pct >= g.min);
+function tasks() {
+  return Q.filter(q => S.a[q.id] === "y" || S.a[q.id] === "q").map(q => {
+    const w = q.p * (S.a[q.id] === "y" ? 2 : 1);
+    return { q, w, pr: w >= 4 ? "hi" : w >= 2 ? "mid" : "low" };
+  }).sort((a, b) => b.w - a.w || a.q.n - b.q.n);
+}
+
+/* ===================== G'ILDIRAK ===================== */
+const ANG = Q.map((_, i) => -Math.PI / 2 + (i + .5) * 2 * Math.PI / N);
+const JIT = Q.map((_, i) => Math.sin(i * 12.9898) * .9);           // har bir chuqurcha o'z shakliga ega
+const COL = { h: "#58C48D", q: "#F08A3C", y: "#EF5B4C", n: "#6F6858", "": "#2E2A1F" };
+function targetRadii(ans) {
+  const raw = Q.map((q, i) => { const v = ans[q.id]; const d = v === "y" ? 1 : v === "q" ? .45 : 0; return 1 - d * (.30 + .13 * JIT[i]); });
+  return raw.map((_, i) => (raw[(i - 1 + N) % N] + 2 * raw[i] + raw[(i + 1) % N]) / 4);
+}
+const live = new Array(N).fill(1);      // ekrandagi joriy shakl (maqsadga silliq intiladi)
+let demoAns = null;
+
+function fit(cv) {
+  const d = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== Math.round(w * d) || cv.height !== Math.round(h * d)) { cv.width = Math.round(w * d); cv.height = Math.round(h * d); }
+  const ctx = cv.getContext("2d"); ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+function tirePath(ctx, R, rad) {
+  const P = rad.map((r, i) => [Math.cos(ANG[i]) * r * R, Math.sin(ANG[i]) * r * R]);
+  ctx.moveTo((P[N - 1][0] + P[0][0]) / 2, (P[N - 1][1] + P[0][1]) / 2);
+  for (let i = 0; i < N; i++) { const b = P[(i + 1) % N]; ctx.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + b[0]) / 2, (P[i][1] + b[1]) / 2); }
+  ctx.closePath();
+}
+function drawWheel(ctx, R, rad, ans, o) {
+  o = o || {};
+  // ideal aylana va yo'qotilgan qism
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); tirePath(ctx, R, rad);
+  ctx.fillStyle = "rgba(239,91,76,.13)"; ctx.fill("evenodd");
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.setLineDash([3, 5]); ctx.strokeStyle = "rgba(163,154,134,.45)"; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+  // shina
+  ctx.beginPath(); tirePath(ctx, R, rad);
+  const g = ctx.createRadialGradient(0, 0, R * .3, 0, 0, R); g.addColorStop(0, "rgba(226,192,103,.03)"); g.addColorStop(1, "rgba(226,192,103,.16)");
+  ctx.fillStyle = "#14120D"; ctx.fill(); ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = "#E2C067"; ctx.lineWidth = Math.max(2, R * .028); ctx.lineJoin = "round"; ctx.stroke();
+  // javoblar halqasi: 80 bo'lak, har biri bitta savol
+  const rr = R * .47, lw = Math.max(3, R * .07), step = 2 * Math.PI / N, gap = R > 60 ? .012 : 0;
+  ctx.lineWidth = lw; ctx.lineCap = "butt";
+  Q.forEach((q, i) => { ctx.beginPath(); ctx.arc(0, 0, rr, ANG[i] - step / 2 + gap, ANG[i] + step / 2 - gap); ctx.strokeStyle = COL[ans[q.id] || ""]; ctx.stroke(); });
+  // kegaylar: bo'limlar chegarasi
+  const hub = o.hub || R * .13; let k = 0;
+  ctx.strokeStyle = "rgba(226,192,103,.5)"; ctx.lineWidth = Math.max(1, R * .014);
+  SECTIONS.forEach(s => { const a = -Math.PI / 2 + k * step; ctx.beginPath(); ctx.moveTo(Math.cos(a) * hub, Math.sin(a) * hub); ctx.lineTo(Math.cos(a) * (rr - lw / 2 - 1), Math.sin(a) * (rr - lw / 2 - 1)); ctx.stroke(); k += s.items.length; });
+  // tanlangan bo'lim yoyi
+  if (o.active != null) {
+    let st = 0; for (let i = 0; i < o.active; i++) st += SECTIONS[i].items.length;
+    ctx.beginPath(); ctx.arc(0, 0, R + 7, -Math.PI / 2 + st * step + .02, -Math.PI / 2 + (st + SECTIONS[o.active].items.length) * step - .02);
+    ctx.strokeStyle = "#E2C067"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.stroke();
+  }
+  // gupchak
+  ctx.beginPath(); ctx.arc(0, 0, hub, 0, 7);
+  if (o.text != null) {
+    ctx.fillStyle = "#17150F"; ctx.fill(); ctx.strokeStyle = "rgba(226,192,103,.5)"; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = "#F3EEE2"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "700 " + Math.round(hub * .62) + "px Unbounded, sans-serif"; ctx.fillText(o.text, 0, o.sub ? -hub * .12 : 0);
+    if (o.sub) { ctx.fillStyle = "#A39A86"; ctx.font = "500 " + Math.round(hub * .26) + "px Onest, sans-serif"; ctx.fillText(o.sub, 0, hub * .42); }
+  } else { ctx.fillStyle = "#E2C067"; ctx.fill(); ctx.beginPath(); ctx.arc(0, 0, hub * .4, 0, 7); ctx.fillStyle = "#17130A"; ctx.fill(); }
+}
+/* Yo'lda dumalayotgan g'ildirak. Markaz balandligi shakldan hisoblanadi: qiyshiq g'ildirak silkinadi. */
+function drawRoad(cv, rad, ans, smooth, st, dt) {
+  const { ctx, w, h } = fit(cv);
+  const G = h - 36, R = Math.min(h * .34, w * .24), cx = w * (w < 520 ? .5 : .42);
+  const omega = reduced ? 0 : .9 + 1.7 * smooth;
+  st.th = (st.th || 0) + omega * dt;
+  let m = 0, mean = 0;
+  for (let i = 0; i < N; i++) { const v = rad[i] * R * Math.sin(ANG[i] + st.th); if (v > m) m = v; mean += rad[i]; }
+  mean /= N;
+  st.hh = st.hh == null ? m : st.hh + (m - st.hh) * Math.min(1, dt * 26);
+  const cy = G - st.hh, v = omega * R * mean;
+  st.dist = ((st.dist || 0) + v * dt) % 56;
+  // iz: markaz bosib o'tgan yo'l
+  st.tr = st.tr || []; st.tr.forEach(p => p.x -= v * dt); st.tr.push({ x: cx, y: cy }); while (st.tr.length && st.tr[0].x < -10) st.tr.shift();
+  const fade = ctx.createLinearGradient(0, 0, w, 0); fade.addColorStop(0, "rgba(226,192,103,0)"); fade.addColorStop(.25, "rgba(226,192,103,.55)"); fade.addColorStop(1, "rgba(226,192,103,.55)");
+  ctx.beginPath(); st.tr.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.strokeStyle = fade; ctx.lineWidth = 1.5; ctx.lineJoin = "round"; ctx.stroke();
+  // ravon yurish chizig'i (mukammal g'ildirak izi)
+  ctx.beginPath(); ctx.moveTo(0, G - R); ctx.lineTo(cx, G - R); ctx.setLineDash([2, 6]); ctx.strokeStyle = "rgba(163,154,134,.3)"; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+  // yo'l
+  ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.fillRect(0, G, w, h - G);
+  ctx.beginPath(); ctx.moveTo(0, G); ctx.lineTo(w, G); ctx.strokeStyle = "#4A4332"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = "rgba(226,192,103,.35)"; ctx.lineWidth = 2; ctx.beginPath();
+  for (let x = -st.dist; x < w; x += 56) { ctx.moveTo(x, G + 16); ctx.lineTo(x + 26, G + 16); } ctx.stroke();
+  // soya
+  ctx.beginPath(); ctx.ellipse(cx, G + 3, R * .7, 4, 0, 0, 7); ctx.fillStyle = "rgba(0,0,0,.5)"; ctx.fill();
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(st.th); drawWheel(ctx, R, rad, ans); ctx.restore();
+}
+function drawStatic(cv, rad, ans, o) {
+  const { ctx, w, h } = fit(cv); const R = Math.min(w, h) / 2 - (o && o.active != null ? 12 : 3);
+  ctx.save(); ctx.translate(w / 2, h / 2); drawWheel(ctx, R, rad, ans, o); ctx.restore();
+}
+
+/* Bosh ekrandagi namoyish: g'ildirak asta buziladi va qayta tiklanadi */
+let demoT = 0, demoStep = 0; const DEMO_ORDER = [6, 31, 52, 18, 70, 43, 7, 61, 26, 32, 77, 12, 53, 44];
+function demoTick(dt) {
+  demoT += dt; if (demoT < 1.5) return; demoT = 0;
+  if (demoStep >= DEMO_ORDER.length + 2) { demoAns = {}; demoStep = 0; }
+  else if (demoStep < DEMO_ORDER.length) { demoAns[Q[DEMO_ORDER[demoStep]].id] = demoStep % 3 === 2 ? "q" : "y"; demoStep++; }
+  else demoStep++;
+  const k = Object.keys(demoAns).length;
+  $("cap-home").innerHTML = k ? "Namuna: <b>" + k + " ta kamchilik</b> topildi" : "Namuna: <b>tizim mukammal</b>, g'ildirak tekis";
+}
+const stHome = {}, stRes = {}; let last = 0;
+function frame(t) {
+  const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
+  if (!document.hidden) {
+    const own = Object.keys(S.a).length > 0;
+    const ans = view === "home" && !own ? demoAns : S.a;
+    if (view === "home" && !own && !reduced) demoTick(dt);
+    const tg = targetRadii(ans), k = reduced ? 1 : Math.min(1, dt * 7);
+    for (let i = 0; i < N; i++) live[i] += (tg[i] - live[i]) * k;
+    const smooth = 1 - (live.reduce((s, r) => s + (1 - r), 0) / N) / .3;
+    if (view === "home") drawRoad($("cv-home"), live, ans, Math.max(0, smooth), stHome, dt);
+    else if (view === "audit") {
+      const sc = score(Q), o = { active: S.sec, hub: 0, text: sc.max ? sc.pct + "%" : "0%", sub: "tizimlilik" };
+      const side = $("cv-side"); if (side.clientWidth) { o.hub = Math.min(side.clientWidth, side.clientHeight) * .16; drawStatic(side, live, ans, o); }
+      const mini = $("cv-mini"); if (mini.clientWidth) drawStatic(mini, live, ans);
+    } else drawRoad($("cv-res"), live, ans, Math.max(0, smooth), stRes, dt);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ===================== EKRANLAR ===================== */
+function go(v, keepScroll) {
+  view = v;
+  ["home", "audit", "result"].forEach(n => { $("v-" + n).hidden = n !== v; });
+  $("reset").hidden = !Object.keys(S.a).length;
+  if (v === "home") renderHome(); if (v === "audit") renderAudit(); if (v === "result") renderResult();
+  if (!keepScroll) window.scrollTo(0, 0);
+  tgChrome();
+}
+function renderHome() {
+  const sc = score(Q);
+  $("company").value = S.company || "";
+  $("start").textContent = sc.ans ? "Davom ettirish" : "Auditni boshlash";
+  $("resume").hidden = !sc.ans;
+  if (sc.ans) { $("resume").textContent = sc.ans + " / " + N + " savolga javob berilgan. Joriy natija: " + sc.pct + "%."; $("cap-home").innerHTML = "Sizning g'ildiragingiz: <b>" + sc.pct + "%</b>"; }
+}
+function renderMeter() {
+  const sc = score(Q), w = sc.ans / N * 100 + "%";
+  $("cnt").textContent = sc.ans + " / " + N; $("bar").style.width = w;
+  $("mini-cnt").textContent = sc.ans + " / " + N; $("mini-bar").style.width = w;
+  $("mini-sec").textContent = (S.sec + 1) + "-bo'lim. " + SECTIONS[S.sec].short;
+  $("secs").innerHTML = SECTIONS.map((s, i) => { const c = score(s.items); return '<button type="button" class="sec' + (i === S.sec ? " on" : "") + (c.ans === c.total ? " done" : "") + '" data-i="' + i + '"><span>' + esc(s.short) + "</span><small>" + c.ans + "/" + c.total + "</small></button>"; }).join("");
+  const on = $("secs").querySelector(".on"); if (on && on.scrollIntoView && $("secs").scrollWidth > $("secs").clientWidth) $("secs").scrollLeft = on.offsetLeft - 60;
+  $("reset").hidden = !sc.ans;
+}
+function renderAudit() {
+  const s = SECTIONS[S.sec];
+  $("sec-title").textContent = s.name;
+  $("sec-meta").textContent = (S.sec + 1) + "-bo'lim, jami " + SECTIONS.length + " ta. " + s.items.length + " ta savol";
+  $("qs").innerHTML = s.items.map(q => {
+    const v = S.a[q.id] || "", note = S.notes[q.id] || "";
+    const b = (k, l, sm) => '<button type="button" class="a" role="radio" data-v="' + k + '" aria-checked="' + (v === k) + '">' + l + (sm ? "<small>" + sm + "</small>" : "") + "</button>";
+    return '<article class="q" id="' + q.id + '" data-v="' + v + '"><div class="q-n">' + String(q.n).padStart(2, "0") + '</div><div><h3>' + esc(q.t) + (q.p === 3 ? '<span class="core">poydevor savol</span>' : "") + '</h3><p class="q-h">' + esc(q.h) + '</p>' +
+      '<div class="ans" role="radiogroup" aria-label="Javob">' + b("h", "Ha", "10 ball") + b("q", "Qisman", "5 ball") + b("y", "Yo'q", "0 ball") + b("n", "Tegishli emas") + "</div>" +
+      '<button type="button" class="note-t"' + (note ? " hidden" : "") + ">Izoh qo'shish</button>" +
+      '<textarea id="note-' + q.id + '" aria-label="Izoh" placeholder="Izoh yoki dalil"' + (note ? "" : " hidden") + ">" + esc(note) + "</textarea></div></article>";
+  }).join("");
+  $("prev").textContent = S.sec === 0 ? "Bosh sahifa" : "Oldingi bo'lim";
+  $("next").textContent = S.sec === SECTIONS.length - 1 ? "Natijani ko'rish" : "Keyingi bo'lim";
+  renderMeter();
+}
+function answer(el, v) {
+  const art = el.closest(".q"), id = art.id, first = !S.a[id];
+  S.a[id] = v; art.dataset.v = v;
+  art.querySelectorAll(".a").forEach(b => b.setAttribute("aria-checked", b.dataset.v === v));
+  save(); renderMeter(); tgChrome(); haptic(v === "y" ? "warning" : "sel");
+  if (first) { const nx = SECTIONS[S.sec].items.find(q => !S.a[q.id]); if (nx) setTimeout(() => { const el = $(nx.id); if (el && view === "audit") el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }, 220); }
+}
+function nextSec() { if (S.sec < SECTIONS.length - 1) { S.sec++; save(); go("audit"); } else go("result"); }
+function prevSec() { if (S.sec > 0) { S.sec--; save(); go("audit"); } else go("home"); }
+
+function countUp(el, to, dur) {
+  if (reduced) { el.textContent = to; return; }
+  const t0 = performance.now(); (function f(t) { const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0);
+}
+const PR = { hi: ["Yuqori ustuvorlik", "#EF5B4C"], mid: ["O'rta ustuvorlik", "#F08A3C"], low: ["Past ustuvorlik", "#58C48D"] };
+function renderResult() {
+  const sc = score(Q), g = gradeOf(sc.pct), left = N - sc.ans;
+  $("warn").hidden = !left; if (left) $("warn-t").textContent = "Audit yakunlanmagan: " + left + " ta savol qoldi. Natija faqat berilgan javoblar bo'yicha hisoblandi.";
+  $("who").textContent = (S.company ? S.company + ". " : "") + "Audit sanasi: " + today();
+  $("g-l").textContent = g.l; countUp($("g-pc"), sc.pct, 1100);
+  $("g-pts").textContent = sc.got + " / " + sc.max + " ball";
+  $("g-t").textContent = g.t; $("g-d").textContent = g.d;
+  $("cap-res").innerHTML = sc.pct >= 95 ? "G'ildirak tekis. <b>Biznes ravon yuradi.</b>" : "Uzuq chiziq: ravon yurish. <b>Oltin chiziq: sizning yo'lingiz.</b>";
+  const secs = SECTIONS.map(s => Object.assign({ s }, score(s.items))), scored = secs.filter(x => x.max);
+  const weak = scored.length ? scored.reduce((a, b) => b.pct < a.pct ? b : a) : null;
+  $("rows").innerHTML = secs.map((x, i) => { const c = x.pct >= 80 ? "var(--ok)" : x.pct >= 50 ? "var(--gold)" : x.pct >= 25 ? "var(--mid)" : "var(--bad)";
+    return '<button type="button" class="row' + (weak && x === weak && x.pct < 80 ? " weak" : "") + '" data-i="' + i + '"><span class="nm">' + esc(x.s.name) + '</span><span class="tr"><i data-w="' + x.pct + '" style="background:' + c + '"></i></span><span class="pv">' + (x.max ? x.pct + "%" : "–") + '</span><span class="gl">' + (x.max ? gradeOf(x.pct).l : "") + "</span></button>"; }).join("");
+  requestAnimationFrame(() => requestAnimationFrame(() => $("rows").querySelectorAll("i").forEach(i => i.style.width = i.dataset.w + "%")));
+  const risks = Q.filter(q => q.p === 3 && S.a[q.id] === "y");
+  $("risk-blk").hidden = !risks.length;
+  $("risks").innerHTML = risks.map(q => "<li><span>" + esc(q.act) + "<small>" + esc(SECTIONS[q.si].name) + ". " + esc(q.t) + "</small></span></li>").join("");
+  renderPlan();
+  haptic(sc.pct >= 50 ? "success" : "warning");
+}
+function renderPlan() {
+  const all = tasks(), show = planAll ? all : all.slice(0, 12);
+  $("plan-sub").textContent = all.length ? "Jami " + all.length + " ta vazifa. Har biriga mas'ul va muddat belgilang: ular hisobotga qo'shiladi." : "Kamchilik topilmadi. Tizimni shu darajada ushlab turing va har chorakda auditni takrorlang.";
+  $("plan").innerHTML = ["hi", "mid", "low"].map(pr => { const l = show.filter(t => t.pr === pr); if (!l.length) return "";
+    return '<div class="grp"><h3><i style="background:' + PR[pr][1] + '"></i>' + PR[pr][0] + " <span>" + all.filter(t => t.pr === pr).length + " ta</span></h3>" + l.map(t => { const p = S.plan[t.q.id] || {};
+      return '<div class="task"><div class="tx">' + esc(t.q.act) + "<small>" + esc(SECTIONS[t.q.si].short) + ". Hozirgi holat: " + (S.a[t.q.id] === "y" ? "yo'q" : "qisman") + (t.q.p === 3 ? ". Poydevor" : "") + '</small></div><input type="text" id="who-' + t.q.id + '" data-k="who" aria-label="Mas\'ul shaxs" placeholder="Mas\'ul shaxs" value="' + esc(p.who || "") + '"><input type="date" id="when-' + t.q.id + '" data-k="when" aria-label="Muddat" value="' + esc(p.when || "") + '"></div>'; }).join("") + "</div>"; }).join("");
+  $("more").hidden = planAll || all.length <= show.length; $("more").textContent = "Yana " + (all.length - show.length) + " ta vazifani ko'rsatish";
+}
+function report() {
+  const sc = score(Q), g = gradeOf(sc.pct), L = [];
+  L.push("BIZNES TIZIMI AUDITI" + (S.company ? " | " + S.company : ""), "Sana: " + today(), "", "Umumiy natija: " + sc.pct + "% (" + sc.got + " / " + sc.max + " ball)", "Daraja: " + g.l + ". " + g.t, "", "BO'LIMLAR");
+  SECTIONS.forEach(s => { const c = score(s.items); L.push("- " + s.name + ": " + (c.max ? c.pct + "%" : "baholanmadi")); });
+  const all = tasks(); if (all.length) L.push("", "HARAKATLAR REJASI");
+  ["hi", "mid", "low"].forEach(pr => { const l = all.filter(t => t.pr === pr); if (!l.length) return; L.push("", PR[pr][0] + ":");
+    l.forEach((t, i) => { const p = S.plan[t.q.id] || {}, n = S.notes[t.q.id]; L.push((i + 1) + ". " + t.q.act + (p.who ? " | Mas'ul: " + p.who : "") + (p.when ? " | Muddat: " + p.when : "") + (n ? " | Izoh: " + n : "")); }); });
+  L.push("", "Kozimxon To'rayev metodologiyasi | t.me/KozimxonTuraev");
+  return L.join("\n");
+}
+function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2200); }
+function copyReport() {
+  const txt = report(), ok = () => { toast("Hisobot nusxalandi"); haptic("success"); };
+  const fb = () => { const ta = document.createElement("textarea"); ta.value = txt; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select(); let r = false; try { r = document.execCommand("copy"); } catch (e) {} ta.remove(); r ? ok() : toast("Nusxalab bo'lmadi. Brauzer ruxsat bermadi."); };
+  try { navigator.clipboard.writeText(txt).then(ok, fb); } catch (e) { fb(); }
+}
+
+/* ===================== TELEGRAM MINI APP ===================== */
+let mainFn = null;
+function tgChrome() {
+  if (!TG) return;
+  try {
+    if (tgv("6.1")) { view === "home" ? TG.BackButton.hide() : TG.BackButton.show(); }
+    const sc = score(Q); let txt;
+    if (view === "home") { txt = sc.ans ? "Davom ettirish" : "Auditni boshlash"; mainFn = start; }
+    else if (view === "audit") { txt = S.sec === SECTIONS.length - 1 ? "Natijani ko'rish" : "Keyingi bo'lim"; mainFn = nextSec; }
+    else if (SEND_RESULT_TO_BOT) { txt = "Natijani botga yuborish"; mainFn = () => TG.sendData(JSON.stringify({ company: S.company, pct: sc.pct, got: sc.got, max: sc.max, grade: gradeOf(sc.pct).l, sections: SECTIONS.map(s => score(s.items).pct), answers: Q.map(q => S.a[q.id] || "-").join("") })); }
+    else { txt = "Hisobotni nusxalash"; mainFn = copyReport; }
+    TG.MainButton.setParams({ text: txt, color: "#E2C067", text_color: "#17130A", is_visible: true, is_active: true });
+  } catch (e) {}
+}
+function tgInit() {
+  if (!TG) return;
+  document.body.classList.add("tg");
+  try {
+    TG.ready(); TG.expand();
+    if (tgv("6.1")) { TG.setHeaderColor("#0E0D0B"); TG.setBackgroundColor("#0E0D0B"); TG.BackButton.onClick(() => { view === "result" ? go("audit") : view === "audit" ? prevSec() : null; }); }
+    if (tgv("7.10") && TG.setBottomBarColor) TG.setBottomBarColor("#0E0D0B");
+    if (tgv("6.2")) TG.enableClosingConfirmation();
+    if (tgv("7.7") && TG.disableVerticalSwipes) TG.disableVerticalSwipes();
+    TG.MainButton.onClick(() => mainFn && mainFn());
+    $("contact").addEventListener("click", e => { e.preventDefault(); TG.openTelegramLink(CONTACT_URL); });
+  } catch (e) {}
+}
+
+/* ===================== HODISALAR ===================== */
+function start() { S.company = $("company").value.trim(); save(); const i = SECTIONS.findIndex(s => s.items.some(q => !S.a[q.id])); if (i >= 0) S.sec = i; go("audit"); }
+$("start").addEventListener("click", start);
+$("company").addEventListener("input", e => { S.company = e.target.value.trim(); save(); });
+$("home-link").addEventListener("click", () => go("home"));
+$("next").addEventListener("click", nextSec); $("prev").addEventListener("click", prevSec);
+$("secs").addEventListener("click", e => { const b = e.target.closest(".sec"); if (b) { S.sec = +b.dataset.i; save(); go("audit"); } });
+$("qs").addEventListener("click", e => {
+  const a = e.target.closest(".a"); if (a) return answer(a, a.dataset.v);
+  const n = e.target.closest(".note-t"); if (n) { n.hidden = true; const ta = n.nextElementSibling; ta.hidden = false; ta.focus(); }
+});
+$("qs").addEventListener("input", e => { if (e.target.tagName === "TEXTAREA") { S.notes[e.target.id.slice(5)] = e.target.value; save(); } });
+$("rows").addEventListener("click", e => { const r = e.target.closest(".row"); if (r) { S.sec = +r.dataset.i; save(); go("audit"); } });
+$("plan").addEventListener("input", e => { const k = e.target.dataset.k; if (!k) return; const id = e.target.id.split("-")[1]; (S.plan[id] = S.plan[id] || {})[k] = e.target.value; save(); });
+$("more").addEventListener("click", () => { planAll = true; renderPlan(); });
+$("copy").addEventListener("click", copyReport);
+$("edit").addEventListener("click", () => go("audit")); $("warn-b").addEventListener("click", start);
+$("print").addEventListener("click", () => { planAll = true; renderPlan(); window.print(); });
+let armT; $("reset").addEventListener("click", e => {
+  const b = e.currentTarget;
+  if (!b.classList.contains("arm")) { b.classList.add("arm"); b.textContent = "Tasdiqlang: javoblar o'chadi"; armT = setTimeout(() => { b.classList.remove("arm"); b.textContent = "Qayta boshlash"; }, 4000); return; }
+  clearTimeout(armT); b.classList.remove("arm"); b.textContent = "Qayta boshlash";
+  S = { a: {}, notes: {}, plan: {}, company: "", sec: 0 }; demoAns = {}; demoStep = 0; planAll = false; save(); go("home");
+});
+
+/* ===================== ISHGA TUSHIRISH ===================== */
+$("scale").innerHTML = GRADES.map(g => "<div><i>" + g.l + "</i><span><b>" + g.min + "% dan. " + g.range + "</b>" + esc(g.t) + "</span></div>").join("");
+$("print").hidden = !(BUILD === "tg" && !TG);
+demoAns = {}; $("cap-home").innerHTML = "Namuna: <b>tizim mukammal</b>, g'ildirak tekis";
+load(); tgInit();
+cloudRestore(() => { go("home"); requestAnimationFrame(frame); });
+</script>
+</body>
+</html>
