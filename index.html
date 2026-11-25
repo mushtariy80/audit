@@ -353,9 +353,9 @@ canvas{display:block;width:100%}
       <div class="cta">
         <div>
           <h2>Tizimni birga quramizmi?</h2>
-          <p>Natijani Kozimxon To'rayev jamoasiga yuboring. Zaif bo'limlar bo'yicha keyingi qadamni birga belgilaysiz. Telefon: +998 91 008 05 09</p>
+          <p>Natijani Kozimxon To'rayev jamoasiga yuboring. Zaif bo'limlar bo'yicha keyingi qadamni birga belgilaysiz. Telefon: +998 91 002 05 09</p>
         </div>
-        <a class="btn" id="contact" href="https://t.me/KozimxonTuraev" target="_blank" rel="noopener">Telegramda yozish</a>
+        <a class="btn" id="contact" href="https://t.me/kozimxonturaev_konsultant" target="_blank" rel="noopener">Telegramda yozish</a>
       </div>
     </section>
   </main>
@@ -417,8 +417,8 @@ const GRADES = [
 
 /* ===================== SOZLAMALAR ===================== */
 const BUILD = "tg";              // "web" yoki "tg"
-const CONTACT_URL = "https://t.me/KozimxonTuraev";
-const SEND_RESULT_TO_BOT = false;       // true: natija Telegram.WebApp.sendData orqali botga yuboriladi (faqat klaviatura tugmasidan ochilgan mini app uchun)
+const CONTACT_URL = "https://t.me/kozimxonturaev_konsultant";
+const SEND_RESULT_TO_BOT = true;        // true: natija Telegram.WebApp.sendData orqali botga yuboriladi (faqat klaviatura tugmasidan ochilgan mini app uchun)
 const STORE_KEY = "tizim-audit-25";
 
 /* ===================== HOLAT ===================== */
@@ -703,7 +703,7 @@ function report() {
   const all = tasks(); if (all.length) L.push("", "HARAKATLAR REJASI");
   ["hi", "mid", "low"].forEach(pr => { const l = all.filter(t => t.pr === pr); if (!l.length) return; L.push("", PR[pr][0] + ":");
     l.forEach((t, i) => { const p = S.plan[t.q.id] || {}, n = S.notes[t.q.id]; L.push((i + 1) + ". " + t.q.act + (p.who ? " | Mas'ul: " + p.who : "") + (p.when ? " | Muddat: " + p.when : "") + (n ? " | Izoh: " + n : "")); }); });
-  L.push("", "Kozimxon To'rayev metodologiyasi | t.me/KozimxonTuraev");
+  L.push("", "Kozimxon To'rayev metodologiyasi | t.me/kozimxonturaev_konsultant | +998 91 002 05 09");
   return L.join("\n");
 }
 function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2200); }
@@ -729,7 +729,7 @@ function tgChrome() {
 }
 function tgInit() {
   if (!TG) return;
-  document.body.classList.add("tg");
+  document.body.classList.add("tg"); if (SEND_RESULT_TO_BOT) $("copy").classList.remove("dup");
   try {
     TG.ready(); TG.expand();
     if (tgv("6.1")) { TG.setHeaderColor("#0E0D0B"); TG.setBackgroundColor("#0E0D0B"); TG.BackButton.onClick(() => { view === "result" ? go("audit") : view === "audit" ? prevSec() : null; }); }
