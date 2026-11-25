@@ -32,7 +32,7 @@ p{margin:0}
 canvas{display:block;width:100%}
 
 /* ---------- yuqori qator ---------- */
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0}
+.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 12px;padding:16px 0}
 .brand{display:flex;align-items:baseline;gap:10px;background:none;border:0;padding:0;text-align:left}
 .brand b{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.04em;color:var(--gold)}
 .brand span{font-size:13px;color:var(--muted)}
@@ -146,6 +146,10 @@ canvas{display:block;width:100%}
 .row .pv{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .row .gl{font-family:var(--display);font-weight:700;font-size:13px;color:var(--muted)}
 .row.weak .nm::after{content:"eng zaif";margin-left:8px;font-size:11.5px;color:var(--bad);border:1px solid var(--bad);border-radius:6px;padding:0 6px;white-space:nowrap}
+.vd{display:grid;gap:14px;margin:0}
+.vd div{display:grid;grid-template-columns:190px 1fr;gap:16px;align-items:baseline}
+.vd dt{font-weight:700;color:var(--gold);font-size:15px}
+.vd dd{margin:0;font-size:15.5px;max-width:70ch}
 .risks{display:grid;gap:10px;margin:0;padding:0;list-style:none}
 .risks li{display:grid;grid-template-columns:10px 1fr;gap:12px;align-items:start;font-size:15.5px}
 .risks li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--bad);margin-top:8px}
@@ -169,7 +173,6 @@ canvas{display:block;width:100%}
 @keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ---------- telefon ---------- */
-.tg .dup{display:none}
 @media (max-width:860px){
   .wrap{padding:0 16px}
   .brand span{display:none}
@@ -195,6 +198,7 @@ canvas{display:block;width:100%}
   .a{flex:1;min-width:0;padding:10px 8px}
   .a[data-v="n"]{flex-basis:100%;padding:8px}
   .rhead{grid-template-columns:1fr;gap:20px}
+  .vd div{grid-template-columns:1fr;gap:2px}
   .rhead .stage{order:-1}
   .row{grid-template-columns:1fr 50px 22px;gap:6px 10px;padding:10px 4px}
   .row .tr{grid-column:1/-1;grid-row:2}
@@ -224,13 +228,13 @@ canvas{display:block;width:100%}
     <section class="hero">
       <div>
         <h1>Biznesingiz qanday g'ildirakda yuryapti?</h1>
-        <p class="lead"><b>80 ta savol, 15–20 daqiqa.</b> Har bir kamchilik g'ildirakni qiyshaytiradi. Yakunda biznesingiz qanchalik ravon yurishini va birinchi navbatda nimani tuzatish kerakligini ko'rasiz.</p>
+        <p class="lead"><b>25 ta savol, 5–7 daqiqa.</b> Har bir kamchilik g'ildirakni qiyshaytiradi. Yakunda biznesingiz qanchalik ravon yurishini ko'rasiz va boshqaruv tizimingiz bo'yicha xulosa olasiz.</p>
         <div class="start">
           <div class="field">
             <label for="company">Kompaniya nomi (ixtiyoriy)</label>
             <input id="company" type="text" autocomplete="organization" placeholder="Masalan: Oltin Qanot MChJ" maxlength="60">
           </div>
-          <button class="btn dup" id="start" type="button">Auditni boshlash</button>
+          <button class="btn" id="start" type="button">Auditni boshlash</button>
           <p class="resume" id="resume" hidden></p>
         </div>
       </div>
@@ -244,9 +248,9 @@ canvas{display:block;width:100%}
       <div>
         <h2>Qanday ishlaydi</h2>
         <ol class="steps">
-          <li><span><b>Javob bering.</b> 8 bo'lim bo'yicha savollarga halol javob tanlang.</span></li>
+          <li><span><b>Javob bering.</b> 7 bo'lim bo'yicha savollarga halol javob tanlang.</span></li>
           <li><span><b>G'ildirakni kuzating.</b> U har bir javobingizdan keyin o'zgaradi.</span></li>
-          <li><span><b>Rejani oling.</b> Dastur zaif joylarni ustuvorlik bo'yicha saralab beradi.</span></li>
+          <li><span><b>Xulosani oling.</b> Dastur boshqaruv tizimi tahlili va harakatlar rejasini beradi.</span></li>
         </ol>
       </div>
       <div>
@@ -314,6 +318,11 @@ canvas{display:block;width:100%}
     </section>
 
     <section class="blk">
+      <h2>Boshqaruv tizimi bo'yicha xulosa</h2>
+      <dl class="vd" id="verdict"></dl>
+    </section>
+
+    <section class="blk">
       <h2>Bo'limlar bo'yicha natija</h2>
       <p class="sub">Bo'limni bosing va javoblarni qayta ko'rib chiqing.</p>
       <div class="rows" id="rows"></div>
@@ -354,120 +363,63 @@ canvas{display:block;width:100%}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-/* ===== AUDIT MAZMUNI: 8 bo'lim, 80 savol, maksimal 800 ball =====
+/* ===== AUDIT MAZMUNI: 7 bo'lim, 25 savol, maksimal 250 ball =====
    Har savol: [savol, standart (HA javobi nimani anglatadi), birinchi qadam, ustuvorlik 1-3]
    Ustuvorlik 3 = poydevor savol. Usiz boshqa tizimlar ishlamaydi. */
 const SECTIONS = [
 { id:"s1", name:"Strategiya va maqsadlar", short:"Strategiya", q:[
- ["Kompaniyangizning missiyasi aniq ishlab chiqilgan va yozib qo'yilganmi?","Missiya yozma shaklda bor va xodimlarga to'liq tushuntirilgan.","Missiyani bir-ikki jumlada yozing va butun jamoaga tushuntiring.",2],
- ["Xodimlar missiyani to'liq tushunadi va unga amal qiladimi?","Har bir xodim missiyani o'z so'zlari bilan aytib bera oladi.","Missiyani har bir bo'limda muhokama qiling. Xodimlar uni o'z so'zlari bilan aytib bersin.",1],
- ["Kompaniya uchun 3–5 yillik strategik maqsad ishlab chiqilganmi?","Maqsad raqam va sana bilan yozilgan: X yilga Y ta filial, Z mln aylanma.","3–5 yillik maqsadni raqam va sana bilan yozib chiqing.",3],
- ["Strategiyani amalga oshirish uchun yillik maqsadlar aniqlanganmi?","Yillik OKR yoki maqsadlar rejasi yozma shaklda mavjud.","Strategiyadan kelib chiqib yillik maqsadlar rejasini tuzing.",2],
- ["Har bir bo'lim maqsadi kompaniya strategiyasiga bog'langanmi?","Savdo, marketing, ishlab chiqarish maqsadlari asosiy strategiyaga xizmat qiladi.","Har bir bo'lim maqsadini kompaniyaning yillik maqsadiga bog'lab qayta yozing.",2],
- ["Kompaniya qadriyatlari yozma shaklda mavjud va amaliyotda yashaydimi?","Qadriyatlar qaror qabul qilishda va kundalik ishda qo'llanadi.","Qadriyatlarni yozing va har biriga kundalik ishdan aniq misol biriktiring.",1],
- ["Maqsad qo'yishda SMART tizimidan foydalaniladimi?","Har bir maqsad aniq, o'lchanadigan, erishsa bo'ladigan, aktual va muddatli.","Joriy maqsadlarni SMART mezonlari bo'yicha qayta yozing.",1],
- ["Qaror qabul qilishda kim vakolatli ekani aniq belgilangan va yozib qo'yilganmi?","Kim qanday miqdordagi qarorga vakolatli ekani yozma hujjatda ko'rsatilgan.","Vakolatlar jadvalini tuzing: kim, qaysi masalada, qaysi summagacha qaror qiladi.",2],
- ["Har bir bo'limdan oy oxirida reja-fakt hisoboti olinadi va tahlil qilinadimi?","Reja qo'yilgan, fakt o'lchangan, farq tahlil qilingan.","Har bir bo'lim uchun oylik reja-fakt hisobot shaklini joriy qiling.",2]
+ ["Missiya va qadriyatlar yozma shaklda bor, xodimlar ularni tushunadi va amal qiladimi?","Har bir xodim missiyani o'z so'zlari bilan aytib bera oladi. Qadriyatlar qaror qabul qilishda va kundalik ishda qo'llanadi.","Missiya va qadriyatlarni yozing, har bir bo'limda muhokama qiling va kundalik ishdan misollar biriktiring.",2],
+ ["3–5 yillik strategik maqsad va undan kelib chiqqan yillik maqsadlar belgilanganmi?","Maqsadlar raqam va sana bilan, SMART mezonida yozilgan: X yilga Y ta filial, Z mln aylanma.","3–5 yillik maqsadni raqam va sana bilan yozing, undan yillik maqsadlar rejasini chiqaring.",3],
+ ["Har bir bo'lim maqsadi strategiyaga bog'langan va har oy reja-fakt tahlil qilinadimi?","Bo'lim maqsadlari asosiy strategiyaga xizmat qiladi. Reja qo'yilgan, fakt o'lchangan, farq tahlil qilingan.","Bo'lim maqsadlarini yillik maqsadga bog'lang va oylik reja-fakt hisobotini joriy qiling.",2],
+ ["Qaror qabul qilish vakolatlari aniq belgilangan va yozib qo'yilganmi?","Kim qaysi masalada va qaysi summagacha qaror qilishi yozma hujjatda ko'rsatilgan.","Vakolatlar jadvalini tuzing: kim, qaysi masalada, qaysi summagacha qaror qiladi.",2]
 ]},
 { id:"s2", name:"Tashkiliy tuzilma va standartlar", short:"Tuzilma va SOP", q:[
- ["Tashkiliy tuzilma (org struktura) shakllantirilgan va xodimlarga tushuntirilganmi?","Grafik ko'rinishda bor. Kim kimga bo'ysunishi har bir xodimga aniq.","Org strukturani chizing va har bir xodimga tushuntiring.",2],
- ["Bo'limlar bir-biridan ajratilgan va o'zaro aloqalari qoidalar bilan tartibga solinganmi?","Bo'limlar orasida mas'uliyat chegarasi aniq belgilangan.","Bo'limlar orasidagi mas'uliyat chegaralarini yozma qoida qilib belgilang.",2],
- ["Har bir xodim uchun lavozim doirasidagi vazifalar batafsil yozilganmi?","Lavozim yo'riqnomasi bor: vazifalar, javobgarlik va mas'uliyat chegarasi aniq.","Har bir lavozim uchun lavozim yo'riqnomasini yozing.",3],
- ["Har bir lavozim uchun soft va hard skills aniq belgilangan va yozilganmi?","Nomzod tanlash va baholashda texnik va insoniy ko'nikmalar bo'yicha standart mezon bor.","Har bir lavozim uchun kerakli ko'nikmalar ro'yxatini tuzing.",1],
- ["Asosiy ish jarayonlari uchun SOPlar ishlab chiqilganmi?","Har bir jarayon bosqichma-bosqich, rasm, video va real misollar bilan tushuntirilgan.","Eng muhim 5 ta jarayondan boshlab SOP yozing.",3],
- ["Yulduz xodimlar tajribasi hujjatga ko'chirilgan va barchaga o'rgatilganmi?","Eng yaxshi xodimlarning ish usuli hujjatlashtirilib, standartga aylantirilgan.","Eng yaxshi xodimlarning ish usulini yozib oling va standart qilib tasdiqlang.",2],
- ["Xodimlar SOPlarni amalda qo'llaydimi?","SOPga amal qilish nazorat qilinadi va xodim KPIsiga ta'sir qiladi.","SOPga amal qilishni nazorat qiling va uni KPIga bog'lang.",2],
- ["SOPlar doimiy yangilab boriladimi?","Oxirgi yangilanish sanasi yozilgan, mas'ul shaxs belgilangan.","Har bir SOPga mas'ul va yangilash muddatini belgilang.",1],
- ["Ko'rsatma va qoidalar ish joyida ko'rinadigan joyga joylashtirilganmi?","Vizual boshqaruv bor: cheklist, SOP, poster va qoidalar xodim ishlayotgan joyda.","Asosiy cheklist va qoidalarni ish joyiga osib qo'ying.",1],
- ["Vazifalarni to'g'ri ketma-ketlikda bajarish uchun cheklistlar bormi?","Har bir jarayon uchun bajarildi/bajarilmadi cheklisti ishlab chiqilgan.","Takrorlanadigan jarayonlar uchun cheklistlar tuzing.",2],
- ["Muhim jarayonlar uchun jarayon egasi (owner) belgilanganmi?","Har bir jarayonga bitta mas'ul shaxs biriktirilgan.","Har bir muhim jarayonga bitta mas'ul shaxsni yozma ravishda biriktiring.",2]
+ ["Tashkiliy tuzilma shakllangan va bo'limlar orasidagi mas'uliyat chegarasi aniqmi?","Org struktura grafik ko'rinishda bor. Kim kimga bo'ysunishi va bo'limlar chegarasi har bir xodimga tushunarli.","Org strukturani chizing, bo'limlar mas'uliyat chegarasini yozing va xodimlarga tushuntiring.",2],
+ ["Har bir lavozim uchun vazifalar va kerakli ko'nikmalar yozilgan va yangilab boriladimi?","Lavozim yo'riqnomasi bor: vazifalar, javobgarlik, soft va hard skills. Har chorakda ko'rib chiqiladi.","Har bir lavozim uchun yo'riqnoma va ko'nikmalar ro'yxatini yozing, choraklik yangilash tartibini kiriting.",3],
+ ["Asosiy jarayonlar uchun SOP va cheklistlar ishlab chiqilganmi?","Jarayonlar bosqichma-bosqich yozilgan. Eng yaxshi xodimlar tajribasi standartga aylangan. Ko'rsatmalar ish joyida ko'rinadi.","Eng muhim 5 ta jarayondan boshlab SOP va cheklist yozing, ularni ish joyiga joylashtiring.",3],
+ ["Standartlar amalda ishlaydimi: nazorat qilinadi, egasi bor, yangilanadi?","SOPga amal qilish KPIga ta'sir qiladi. Har bir jarayonga bitta mas'ul biriktirilgan. Yangilanish sanasi yozilgan.","Har bir jarayonga mas'ul biriktiring, SOPga amal qilishni KPIga bog'lang va yangilash muddatini belgilang.",2]
 ]},
-{ id:"s3", name:"Yollash, baholash va motivatsiya", short:"Baholash", q:[
- ["Ishga olish jarayoni (recruitment) uchun aniq standartlar yozilganmi?","E'lon, filtrlash, intervyu, test, qaror: har bir bosqich standartlashgan.","Ishga olish bosqichlarini va har biridagi mezonlarni yozing.",2],
- ["Onboarding dasturi mavjud va yangi xodimlar uchun majburiymi?","1-hafta, 1-oy, 3-oy: nimani, kimdan o'rganishi va qanday baholanishi aniq.","Yangi xodim uchun 1-hafta, 1-oy, 3-oy rejasini ishlab chiqing.",3],
- ["Lavozim yo'riqnomalari so'nggi 3 oy ichida yangilanganmi?","Yo'riqnomalar bozor, kompaniya va kutilgan natijalarga qarab har 3 oyda yangilanadi.","Yo'riqnomalarni har chorakda ko'rib chiqish tartibini kiriting.",1],
- ["Xodimlarning ish natijalarini baholash (performance review) tizimi bormi?","Kamida har 3 oyda 1:1 suhbatda aniq mezonlar bo'yicha baholanadi.","Choraklik performance review suhbatlarini boshlang.",2],
- ["Har bir lavozim uchun KPIlar ishlab chiqilgan va har oyda o'lchanadimi?","KPI: miqdor, sifat, vaqt, mas'ul. Har oyda hisobot va tahlil.","Har bir lavozim uchun 3–5 ta KPI belgilang va har oy o'lchang.",3],
- ["KPI natijalari asosida mukofot va jazo tizimi bormi?","Ball, natija, bonus yoki jarima aniq formulada. Xodimlarga tushuntirilgan.","KPI natijasini bonus formulasiga bog'lang va xodimlarga tushuntiring.",2],
- ["Maosh va imtiyozlar tizimi aniq me'yorlar asosida ishlab chiqilganmi?","Xodim o'z maoshini o'zi hisoblab chiqa oladi.","Maosh hisoblash formulasini yozing va har bir xodimga tushuntiring.",2],
- ["Xodimlarning kundalik vazifalariga ketadigan vaqt o'lchanadimi?","Time-tracking yuritiladi: raqamli yoki qo'lda.","Asosiy vazifalar bo'yicha vaqt hisobini yuritishni boshlang.",1],
- ["Bitta mahsulot yoki xizmat uchun ketadigan vaqt standarti belgilanganmi?","Standart vaqt normasi bor. Reja va faktni solishtirish mumkin.","Asosiy mahsulot yoki xizmat uchun vaqt normasini o'lchab belgilang.",1],
- ["Har bir xodimning kompaniyaga keltirayotgan foydasi o'lchanadimi?","Xodimga ketgan xarajat va u keltirgan daromad solishtiriladi.","Har bir xodim bo'yicha xarajat va keltirgan daromad hisobini yuriting.",1]
+{ id:"s3", name:"Xodimlar boshqaruvi", short:"Xodimlar", q:[
+ ["Ishga olish va onboarding jarayoni standartlashganmi?","E'lon, filtrlash, intervyu, test, qaror bosqichlari yozilgan. Yangi xodim uchun 1-hafta, 1-oy, 3-oy rejasi bor.","Ishga olish bosqichlari va mezonlarini yozing, yangi xodim uchun 3 oylik moslashuv rejasini tuzing.",3],
+ ["Har bir lavozim uchun KPI har oy o'lchanadi va natija muntazam baholanadimi?","KPI: miqdor, sifat, vaqt, mas'ul. Kamida har chorakda 1:1 performance review o'tkaziladi.","Har bir lavozim uchun 3–5 ta KPI belgilang, har oy o'lchang va choraklik baholash suhbatlarini boshlang.",3],
+ ["Maosh, bonus va jarima tizimi natijaga bog'langan va xodimga tushunarlimi?","Formula aniq: ball, natija, bonus yoki jarima. Xodim o'z maoshini o'zi hisoblay oladi.","Maosh va bonus formulasini KPI natijasiga bog'lab yozing va har bir xodimga tushuntiring.",2],
+ ["Xodimlarni rivojlantirish tizimi bormi: grading, o'quv rejasi, ko'nikma bahosi, rezerv?","O'sish bosqichlari va talablari aniq. Yillik o'quv rejasi va skill matrix bor. Asosiy lavozimlarga o'rinbosar tayyorlanadi.","O'sish bosqichlarini yozing, skill matrix va yillik o'quv rejasini tuzing, asosiy lavozimlarga o'rinbosar belgilang.",2],
+ ["Xodim qo'nimsizligi o'lchanadi, ehtiyojlar va ketish sabablari tahlil qilinadimi?","Kim keldi, kim ketdi, nima sababdan: har oy hisobot. Anketa va exit interview muntazam o'tkaziladi.","Qo'nimsizlik hisobotini har oy yuriting va har bir ketayotgan xodim bilan exit interview o'tkazing.",1]
 ]},
-{ id:"s4", name:"Rivojlantirish va ushlab qolish", short:"Rivojlanish", q:[
- ["Xodim ehtiyojlarini aniqlash mexanizmlari bormi?","Anketa, 1:1 suhbat, exit interview muntazam o'tkaziladi.","Xodimlar ehtiyojini aniqlash uchun choraklik anketa o'tkazing.",1],
- ["Grading tizimi (tajriba va natijaga qarab o'sish yo'li) ishlab chiqilganmi?","Junior, Middle, Senior, Lead: har bosqich uchun talablar aniq.","Lavozimlar bo'yicha o'sish bosqichlari va talablarini yozing.",2],
- ["Xodimlarni rivojlantirish uchun trening rejalari bormi?","Yillik o'quv rejasi, byudjet va mas'ul shaxs belgilangan.","Yillik o'quv rejasi va byudjetini tuzing.",1],
- ["Xodimlar ko'nikmasi muntazam baholanadi va rivojlantiriladimi?","Skill matrix bor. Har 6 oyda ko'nikmalar o'lchanadi va bo'shliqlar aniqlanadi.","Skill matrix tuzing va har 6 oyda yangilang.",2],
- ["Treninglarning xodim samaradorligiga ta'siri o'lchanadimi?","O'qishdan oldingi va keyingi natijalar solishtiriladi.","Har bir treningdan oldin va keyin natijani o'lchang.",1],
- ["Yuqori lavozimlar uchun ichki rezerv tayyorlash tizimi bormi?","Succession plan bor: kim qaysi lavozimga tayyorlanayotgani aniq.","Asosiy lavozimlar uchun o'rinbosar nomzodlarni belgilang.",2],
- ["Rotatsiya tizimi (xodimni boshqa vazifada sinash) yo'lga qo'yilganmi?","Xodimlar rejali ravishda boshqa vazifalarda sinab ko'riladi.","Asosiy lavozimlar uchun rotatsiya jadvalini tuzing.",1],
- ["Xodim qo'nimsizligi (tekuchka) ko'rsatkichi o'lchanadimi?","Oylik va yillik hisobot: necha kishi keldi, ketdi, nima sababdan.","Xodim qo'nimsizligi hisobotini har oy yuriting.",2],
- ["Xodimlarning ketish sabablari doimiy tahlil qilinadimi?","Exit interview o'tkaziladi va xulosa chiqariladi.","Har bir ketayotgan xodim bilan exit interview o'tkazing.",2]
+{ id:"s4", name:"Moliya va nazorat", short:"Moliya", q:[
+ ["Foyda-zarar (P&L) va pul oqimi (cash-flow) hisobotlari muntazam yuritiladimi?","P&L har oy aniq raqamda. Cash-flow har hafta prognoz bilan. Asosiy ko'rsatkichlar bitta dashboardda.","P&L hisobotini har oy, cash-flow jadvalini har hafta yuritishni yo'lga qo'ying.",3],
+ ["Biznes puli shaxsiy puldan ajratilgan, byudjet va xarajat nazorati yo'lga qo'yilganmi?","Egasi belgilangan maosh yoki dividend oladi. Yillik byudjet bor. Xarajatlar reja-fakt bo'yicha nazorat qilinadi.","Shaxsiy va biznes pullarini ajrating, yillik byudjet tuzing va xarajatlar bo'yicha reja-fakt nazoratini boshlang.",3],
+ ["Moliyaviy qoidalar va ichki nazorat ishlaydimi?","To'lov va qarz vakolati yozilgan. Debitor va kreditor qarzlar har oy aniq. Pul va tovar jarayonini bir kishi yakka boshqarmaydi.","To'lov va qarz qoidalarini yozing, qarzlar ro'yxatini har oy yangilang, ikki kishilik nazoratni joriy qiling.",2]
 ]},
-{ id:"s5", name:"Moliya va nazorat", short:"Moliya", q:[
- ["Foyda va zarar (P&L) hisoboti har oy yuritiladimi?","Har oy aniq raqamda: qancha tushdi, qancha ketdi, qancha qoldi.","P&L hisobotini har oy yuritishni yo'lga qo'ying.",3],
- ["Pul oqimi (cash-flow) monitoringi ishlaydimi?","Haftalik: qancha pul bor, qancha keladi, qancha ketadi. Prognoz bilan.","Haftalik cash-flow jadvali va prognozini yuriting.",3],
- ["Biznes puli va egasining shaxsiy puli bir-biridan ajratilganmi?","Egasi belgilangan maosh yoki dividend oladi. Kassadan shaxsiy xarajat qilinmaydi.","Shaxsiy va biznes pullarini ajrating. O'zingizga belgilangan maosh tayinlang.",3],
- ["Byudjet tuzish va nazorat jarayoni yo'lga qo'yilganmi?","Yillik byudjet, oylik reja va haftalik monitoring bor.","Yillik byudjet tuzing va oylik nazoratini boshlang.",1],
- ["Debitor va kreditor qarzdorlik hisoboti yuritiladimi?","Kim bizga qancha qarz, biz kimga qancha qarzmiz: har oy aniq.","Debitor va kreditor qarzlar ro'yxatini har oy yangilang.",2],
- ["Moliyaviy holat ko'rsatkichlari bitta dashboardda kuzatiladimi?","Daromad, xarajat, foyda, likvidlik har oy bitta dashboardda.","Asosiy moliyaviy ko'rsatkichlar uchun bitta dashboard yarating.",2],
- ["Moliyaviy protseduralar (qarz, to'lovlar, byudjet) hujjatlashtirilganmi?","Kim qancha summaga to'lov yoki qarz chiqarishi mumkinligi yozma qoidada.","To'lov va qarz berish qoidalarini yozing.",2],
- ["Xarajatlarni nazorat qilish va optimallashtirish mexanizmi bormi?","Har bir xarajat toifasi bo'yicha reja, fakt va og'ish nazorat qilinadi.","Xarajatlarni toifalarga ajrating va reja-fakt nazoratini yuriting.",2],
- ["Iqtisodiy stress-test yoki senariy tahlili o'tkaziladimi?","Savdo 30% tushsa, biznes necha oy yashashi hisoblangan.","Savdo 30% tushgan holat uchun hisob-kitob qiling.",1],
- ["Suiiste'molga qarshi ichki nazorat (checks and balances) bormi?","Pul va tovar bilan bog'liq jarayonni bir kishi yakka o'zi boshqarmaydi.","Pul va tovar jarayonlarida ikki kishilik nazoratni joriy qiling.",2]
+{ id:"s5", name:"Jarayonlar, sifat va texnologiya", short:"Jarayonlar", q:[
+ ["Hisob-kitob, ombor, savdo va ish vaqti raqamli tizimda yuritiladimi?","ERP, POS yoki shunga o'xshash tizim ishlaydi. Zaxira, savdo va davomat bo'yicha hisobot avtomatik chiqadi.","Hisob-kitob, ombor va savdoni raqamli tizimga o'tkazing.",2],
+ ["Sifat standartlari bor, brak va xatoliklar qayd etilib tahlil qilinadimi?","Tekshirish bosqichlari va mas'ul belgilangan. Brak foizi va sababi har oy aniqlanadi, takrorlanmasligi uchun chora ko'riladi.","Sifat standartlarini yozing, xatoliklar jurnalini oching va har oy tahlil qiling.",2],
+ ["Ichki audit muntazam o'tkaziladi va isroflar kamaytiriladimi?","Har chorakda o'z-o'zini tekshirish. Har bir topilmaga mas'ul va muddat belgilanadi. Vaqt, pul va kuch isrofi tahlil qilinadi.","Choraklik ichki audit jadvalini belgilang va har bir topilmaga mas'ul hamda muddat biriktiring.",1]
 ]},
-{ id:"s6", name:"Jarayonlar, sifat va texnologiya", short:"Jarayonlar", q:[
- ["Ish jarayonlarida ERP, POS kabi tizimlardan foydalaniladimi?","Hisob-kitob, zaxira va savdo raqamli tizimda yuritiladi.","Hisob-kitob va savdoni raqamli tizimga o'tkazing.",2],
- ["Xodimlar ish vaqti avtomatik tizim orqali kuzatiladimi?","Face ID, geolokatsiya yoki ilova: kim qachon kelgani va ketgani aniq.","Ish vaqtini avtomatik qayd qiladigan tizim o'rnating.",1],
- ["Ombor va zaxira nazorati tizimi yo'lga qo'yilganmi?","Qancha bor, qancha sotildi, necha kunlik zaxira: avtomatik hisobot.","Ombor hisobini raqamli tizimda yuriting va har oy aylanmani tahlil qiling.",2],
- ["Mahsulot yoki xizmat sifatini nazorat qilish protokollari mavjudmi?","Sifat standartlari, tekshirish bosqichlari va mas'ul shaxs belgilangan.","Sifat standartlari va tekshirish bosqichlarini yozing.",2],
- ["Brak va sifat nazorati bo'yicha hisobot yuritiladimi?","Brak foizi, sababi va mas'uli har oyda aniqlanadi.","Brak va nuqsonlar hisobotini har oy yuriting.",1],
- ["Ma'lumotlarni himoya qilish va maxfiylik qoidalari ishlab chiqilganmi?","Kim qaysi ma'lumotga kira olishi aniq belgilangan.","Ma'lumotlarga kirish huquqlari jadvalini tuzing.",1],
- ["Xatolik va muammolarni qayd etish va tahlil qilish tizimi bormi?","Xatolik yoziladi, tahlil qilinadi, takrorlanmasligi uchun chora ko'riladi.","Xatoliklar jurnalini oching va har oy tahlil qiling.",2],
- ["Ichki audit muntazam o'tkaziladimi?","Har chorakda o'z-o'zini tekshirish o'tkaziladi, natija hujjatlashtiriladi.","Har chorakda ichki audit o'tkazish jadvalini belgilang.",1],
- ["Audit va tekshiruv topilmalari bo'yicha harakat rejasi bajariladimi?","Topilma, harakat rejasi, mas'ul, muddat, nazorat: zanjir ishlaydi.","Har bir audit topilmasiga mas'ul va muddat belgilang.",1],
- ["Isroflarni kamaytirish bo'yicha tahlillar o'tkaziladimi?","Lean yoki kaizen usulida vaqt, pul va kuch isrofi aniqlanadi.","Bitta jarayonni tanlang va undagi isroflarni kaizen usulida tahlil qiling.",1]
+{ id:"s6", name:"Boshqaruv va madaniyat", short:"Boshqaruv", q:[
+ ["Rahbar 1 oy ishda bo'lmasa, kompaniya natijasi saqlanib qoladimi?","Vakolatlar taqsimlangan. Kundalik qarorlar rahbarsiz qabul qilinadi. Savdo va sifat tushmaydi.","Faqat o'zingiz hal qiladigan ishlar ro'yxatini tuzing va ularni bosqichma-bosqich topshiring.",3],
+ ["Ichki tartib va kommunikatsiya standartlashganmi?","Ichki nizom yozilgan. Yig'ilishlar jadvali va kun tartibi bor. Rahbarlar oyda kamida bir marta 1:1 uchrashuv o'tkazadi.","Ichki tartib-qoidalarni yozing, yig'ilishlar va oylik 1:1 uchrashuvlar jadvalini standartlang.",2],
+ ["Qarorlar raqamlarga asoslanadi va KPI tahlili bo'yicha harakat rejasi tuziladimi?","Har oy: tahlil, sabab, chora, mas'ul, muddat. Xodimlar takliflari yig'iladi va amalga oshiriladi.","Oylik KPI tahlili yig'ilishini joriy qiling va har bir muhim qaror uchun raqamli asos talab qiling.",2]
 ]},
-{ id:"s7", name:"Boshqaruv va madaniyat", short:"Boshqaruv", q:[
- ["Rahbar 1 oy ishda bo'lmasa, kompaniya natijasi saqlanib qoladimi?","Kundalik qarorlar rahbarsiz qabul qilinadi. Savdo va sifat tushmaydi.","Faqat o'zingiz hal qiladigan ishlar ro'yxatini tuzing va ularni bosqichma-bosqich topshiring.",3],
- ["Delegatsiya va vakolat berish madaniyati amalda bormi?","Rahbar hamma ishni o'zi qilmaydi. Vakolatlar aniq taqsimlangan.","Har hafta bitta vazifani natija mezoni bilan birga topshiring.",3],
- ["Ichki kommunikatsiya kanallari samarali ishlaydimi?","Kim kimga qanday murojaat qilishi uchun rasmiy kanal belgilangan.","Rasmiy kommunikatsiya kanallari va qoidalarini belgilang.",2],
- ["Rahbarlar xodimlar bilan muntazam 1:1 uchrashuv o'tkazadimi?","Kamida oyda bir marta: maqsad, muammo va rivojlanish muhokama qilinadi.","Oylik 1:1 uchrashuvlar jadvalini tuzing.",2],
- ["Majburiy yig'ilishlar va ularning tartibi belgilanganmi?","Qaysi yig'ilish, qachon, kim qatnashadi, necha daqiqa: standart bor.","Yig'ilishlar jadvali va har birining kun tartibini standartlang.",2],
- ["O'zgarishlarni joriy etish tartibi bor va xodimlar yangi jarayonga o'qitiladimi?","Nega, qanday, kim o'rgatadi: bosqichlar aniq. Trening, amaliyot, nazorat, tuzatish.","Har bir yangi jarayon uchun joriy etish va o'qitish rejasini tuzing.",1],
- ["Xodimlardan takliflar muntazam olinadi va amalga oshiriladimi?","Kaizen daftari yoki anketa bor. G'oya, baholash, sinov, joriy qilish sikli ishlaydi.","Takliflar tizimini oching va har bir taklifga javob bering.",1],
- ["Qarorlar ma'lumot va faktlar asosida qabul qilinadimi?","Qaror his-tuyg'uga emas, raqamlarga asoslanadi.","Har bir muhim qaror uchun raqamli asos talab qiling.",2],
- ["KPI natijalari tahlil qilinib, harakat rejasi tuziladimi?","Tahlil, sabab, chora, mas'ul, muddat: har oy.","Oylik KPI tahlili yig'ilishini joriy qiling.",2],
- ["Xodimlar intizomini tartibga soluvchi ichki nizom bormi?","Kechikish, xatolik, qoidabuzarlik uchun qoida va oqibatlar yozilgan.","Ichki tartib-qoidalarni yozing va xodimlarni tanishtiring.",2],
- ["Bo'limlararo hamkorlik madaniyati shakllanganmi?","Savdo va ishlab chiqarish, marketing va HR birgalikda ishlaydi.","Bo'limlararo haftalik muvofiqlashtirish yig'ilishini joriy qiling.",1]
-]},
-{ id:"s8", name:"Marketing, savdo va mijozlar", short:"Savdo", q:[
- ["Maqsadli mijoz portreti aniq belgilangan va yozib qo'yilganmi?","Kimga sotilishi, mijozning muammosi va xarid sababi yozma shaklda bor.","Eng foydali mijozlaringiz asosida maqsadli mijoz portretini yozing.",2],
- ["Raqobatchilar va bozor tahlili doimiy olib boriladimi?","Har oy yoki chorakda: raqobatchi narxi, mahsuloti, pozitsiyasi tahlil qilinadi.","Choraklik raqobatchilar tahlili jadvalini yuriting.",1],
- ["Savdo voronkasi bosqichlari belgilangan va konversiya o'lchanadimi?","Lead, muloqot, taklif, bitim: har bosqichdagi son va foiz ma'lum.","Savdo voronkasi bosqichlarini belgilang va konversiyani har hafta o'lchang.",2],
- ["Savdo jarayoni uchun skript va standartlar bormi?","Mijoz bilan muloqot, taklif va e'tirozlarga javob standartlashgan.","Savdo skripti va e'tirozlarga javoblar to'plamini yozing.",2],
- ["Mijozlar ma'lumoti va muloqot tarixi CRMda yuritiladimi?","Har bir mijozning tarixi, kontakti, bitimi va muloqoti bir joyda saqlanadi.","CRM tizimini joriy qiling va barcha mijozlarni kiriting.",2],
- ["Marketing ROI hisoboti yuritiladimi?","Har bir kanal bo'yicha: sarf, lead soni, mijoz soni, daromad.","Har bir reklama kanali bo'yicha sarf va daromad hisobini yuriting.",2],
- ["Narx siyosati va chegirmalar bo'yicha aniq qoidalar bormi?","Kim, qancha va qachon chegirma bera olishi aniq belgilangan.","Narx va chegirma qoidalarini yozing.",1],
- ["Mijozni ushlab qolish (retention) va LTV oshirish strategiyasi bormi?","Takroriy xarid ulushi o'lchanadi, mijozni qaytarish dasturi ishlaydi.","Takroriy xaridlar ulushini o'lchang va mijozni qaytarish dasturini tuzing.",2],
- ["Mijozlar qoniqishi (NPS yoki so'rovnoma) muntazam o'lchanadimi?","Mijoz bahosi muntazam yig'iladi va xulosa chiqariladi.","Mijozlar qoniqishini har chorakda so'rovnoma orqali o'lchang.",1],
- ["Mijozlar shikoyati bilan ishlash tartibi ishlab chiqilganmi?","Qabul qilish, javob muddati, hal qilish, qayta tekshirish: qoida bor.","Shikoyatlar bilan ishlash tartibi va javob muddatini belgilang.",2]
+{ id:"s7", name:"Marketing, savdo va mijozlar", short:"Savdo", q:[
+ ["Maqsadli mijoz, raqobatchilar va narx siyosati aniq belgilanganmi?","Mijoz portreti yozilgan. Raqobatchilar har chorakda tahlil qilinadi. Narx va chegirma qoidalari bor.","Mijoz portretini yozing, choraklik raqobatchilar tahlilini yuriting, narx va chegirma qoidalarini belgilang.",2],
+ ["Savdo jarayoni boshqariladimi: voronka, skript, CRM, marketing ROI?","Har bosqichdagi konversiya ma'lum. Skriptlar standartlashgan. Mijozlar CRMda. Har bir kanal bo'yicha sarf va daromad hisoblanadi.","Savdo voronkasi bosqichlarini belgilang, CRMni joriy qiling va har bir kanal bo'yicha sarf-daromadni hisoblang.",2],
+ ["Mijozni ushlab qolish tizimi ishlaydimi: qoniqish, shikoyatlar, takroriy xarid?","Mijoz bahosi muntazam yig'iladi. Shikoyatga javob muddati belgilangan. Takroriy xarid ulushi o'lchanadi.","Mijozlar qoniqishini har chorakda o'lchang, shikoyatlar tartibini yozing va mijozni qaytarish dasturini tuzing.",2]
 ]}
 ];
 const GRADES = [
- {l:"A", min:80, range:"640–800 ball", t:"Kuchli, boshqariladigan biznes", d:"Tizim mavjud va ishlaydi. Asosiy vazifa: tizimni rivojlantirish va raqobatchilardan oldinda bo'lish."},
- {l:"B", min:50, range:"400–639 ball", t:"Qisman tizimli, beqaror", d:"Ba'zi tizimlar bor, lekin izchil emas. Zaif joylarni mustahkamlash va tizimni to'liq joriy qilish kerak."},
- {l:"C", min:25, range:"200–399 ball", t:"Qo'lda boshqariladigan", d:"Kompaniya o'sishi rahbar va yulduz xodimlarga bog'liq. Tizim qurish ustuvor vazifa."},
- {l:"D", min:0,  range:"0–199 ball",  t:"Tizimsiz, shaxsga bog'langan", d:"Jiddiy xavf: biznes rahbarsiz ishlamaydi, kengaytirib bo'lmaydi. Tizim qurishni darhol boshlash kerak."}
+ {l:"A", min:80, range:"200–250 ball", t:"Kuchli, boshqariladigan biznes", d:"Tizim mavjud va ishlaydi. Asosiy vazifa: tizimni rivojlantirish va raqobatchilardan oldinda bo'lish."},
+ {l:"B", min:50, range:"125–199 ball", t:"Qisman tizimli, beqaror", d:"Ba'zi tizimlar bor, lekin izchil emas. Zaif joylarni mustahkamlash va tizimni to'liq joriy qilish kerak."},
+ {l:"C", min:25, range:"63–124 ball", t:"Qo'lda boshqariladigan", d:"Kompaniya o'sishi rahbar va yulduz xodimlarga bog'liq. Tizim qurish ustuvor vazifa."},
+ {l:"D", min:0,  range:"0–62 ball",  t:"Tizimsiz, shaxsga bog'langan", d:"Jiddiy xavf: biznes rahbarsiz ishlamaydi, kengaytirib bo'lmaydi. Tizim qurishni darhol boshlash kerak."}
 ];
 
 
 /* ===================== SOZLAMALAR ===================== */
 const BUILD = "tg";              // "web" yoki "tg"
 const CONTACT_URL = "https://t.me/KozimxonTuraev";
-const SEND_RESULT_TO_BOT = true;        // true: natija Telegram.WebApp.sendData orqali botga yuboriladi (faqat klaviatura tugmasidan ochilgan mini app uchun)
-const STORE_KEY = "tizim-audit-v1";
+const SEND_RESULT_TO_BOT = false;       // true: natija Telegram.WebApp.sendData orqali botga yuboriladi (faqat klaviatura tugmasidan ochilgan mini app uchun)
+const STORE_KEY = "tizim-audit-25";
 
 /* ===================== HOLAT ===================== */
 const Q = [];                           // tekis ro'yxat
@@ -494,12 +446,12 @@ function load() {
 let saveT;
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {}
-  if (tgv("6.9")) { clearTimeout(saveT); saveT = setTimeout(() => { try { TG.CloudStorage.setItem("answers", Q.map(q => S.a[q.id] || "-").join("")); } catch (e) {} }, 600); }
+  if (tgv("6.9")) { clearTimeout(saveT); saveT = setTimeout(() => { try { TG.CloudStorage.setItem("answers25", Q.map(q => S.a[q.id] || "-").join("")); } catch (e) {} }, 600); }
 }
 function cloudRestore(done) {
   if (!tgv("6.9") || Object.keys(S.a).length) return done();
   try {
-    TG.CloudStorage.getItem("answers", (err, v) => {
+    TG.CloudStorage.getItem("answers25", (err, v) => {
       if (!err && v && v.length === N) Q.forEach((q, i) => { if (v[i] !== "-") S.a[q.id] = v[i]; });
       done();
     });
@@ -554,7 +506,7 @@ function drawWheel(ctx, R, rad, ans, o) {
   const g = ctx.createRadialGradient(0, 0, R * .3, 0, 0, R); g.addColorStop(0, "rgba(226,192,103,.03)"); g.addColorStop(1, "rgba(226,192,103,.16)");
   ctx.fillStyle = "#14120D"; ctx.fill(); ctx.fillStyle = g; ctx.fill();
   ctx.strokeStyle = "#E2C067"; ctx.lineWidth = Math.max(2, R * .028); ctx.lineJoin = "round"; ctx.stroke();
-  // javoblar halqasi: 80 bo'lak, har biri bitta savol
+  // javoblar halqasi: har bir bo'lak bitta savol
   const rr = R * .47, lw = Math.max(3, R * .07), step = 2 * Math.PI / N, gap = R > 60 ? .012 : 0;
   ctx.lineWidth = lw; ctx.lineCap = "butt";
   Q.forEach((q, i) => { ctx.beginPath(); ctx.arc(0, 0, rr, ANG[i] - step / 2 + gap, ANG[i] + step / 2 - gap); ctx.strokeStyle = COL[ans[q.id] || ""]; ctx.stroke(); });
@@ -584,7 +536,10 @@ function drawRoad(cv, rad, ans, smooth, st, dt) {
   const omega = reduced ? 0 : .9 + 1.7 * smooth;
   st.th = (st.th || 0) + omega * dt;
   let m = 0, mean = 0;
-  for (let i = 0; i < N; i++) { const v = rad[i] * R * Math.sin(ANG[i] + st.th); if (v > m) m = v; mean += rad[i]; }
+  const P = rad.map((r, i) => [Math.cos(ANG[i]) * r, Math.sin(ANG[i]) * r]), sn = Math.sin(st.th), cs = Math.cos(st.th);
+  for (let i = 0; i < N; i++) { const a = P[(i - 1 + N) % N], b = P[i], d = P[(i + 1) % N], x0 = (a[0] + b[0]) / 2, y0 = (a[1] + b[1]) / 2, x2 = (b[0] + d[0]) / 2, y2 = (b[1] + d[1]) / 2;
+    for (let q = 0; q < 5; q++) { const t = q / 5, u = 1 - t, v = ((u * u * x0 + 2 * u * t * b[0] + t * t * x2) * sn + (u * u * y0 + 2 * u * t * b[1] + t * t * y2) * cs) * R; if (v > m) m = v; }
+    mean += rad[i]; }
   mean /= N;
   st.hh = st.hh == null ? m : st.hh + (m - st.hh) * Math.min(1, dt * 26);
   const cy = G - st.hh, v = omega * R * mean;
@@ -610,15 +565,15 @@ function drawStatic(cv, rad, ans, o) {
 }
 
 /* Bosh ekrandagi namoyish: g'ildirak asta buziladi va qayta tiklanadi */
-let demoT = 0, demoStep = 0; const DEMO_ORDER = [6, 31, 52, 18, 70, 43, 7, 61, 26, 32, 77, 12, 53, 44];
+let demoT = 0, demoStep = 0; const DEMO_ORDER = [3, 12, 20, 8, 16, 23, 5];
 function demoTick(dt) {
   demoT += dt; if (demoT < 1.5) return; demoT = 0;
   if (demoStep >= DEMO_ORDER.length + 2) { demoAns = {}; demoStep = 0; }
-  else if (demoStep < DEMO_ORDER.length) { demoAns[Q[DEMO_ORDER[demoStep]].id] = demoStep % 3 === 2 ? "q" : "y"; demoStep++; }
+  else if (demoStep < DEMO_ORDER.length) { demoAns[Q[DEMO_ORDER[demoStep] % N].id] = demoStep % 3 === 2 ? "q" : "y"; demoStep++; }
   else demoStep++;
-  const k = Object.keys(demoAns).length;
-  $("cap-home").innerHTML = k ? "Namuna: <b>" + k + " ta kamchilik</b> topildi" : "Namuna: <b>tizim mukammal</b>, g'ildirak tekis";
+  demoCap();
 }
+function demoCap() { const k = Object.keys(demoAns).length; $("cap-home").innerHTML = k ? "Namuna: <b>" + k + " ta kamchilik</b> topildi" : "Namuna: <b>tizim mukammal</b>, g'ildirak tekis"; }
 const stHome = {}, stRes = {}; let last = 0;
 function frame(t) {
   const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
@@ -654,6 +609,7 @@ function renderHome() {
   $("start").textContent = sc.ans ? "Davom ettirish" : "Auditni boshlash";
   $("resume").hidden = !sc.ans;
   if (sc.ans) { $("resume").textContent = sc.ans + " / " + N + " savolga javob berilgan. Joriy natija: " + sc.pct + "%."; $("cap-home").innerHTML = "Sizning g'ildiragingiz: <b>" + sc.pct + "%</b>"; }
+  else demoCap();
 }
 function renderMeter() {
   const sc = score(Q), w = sc.ans / N * 100 + "%";
@@ -703,6 +659,7 @@ function renderResult() {
   $("g-pts").textContent = sc.got + " / " + sc.max + " ball";
   $("g-t").textContent = g.t; $("g-d").textContent = g.d;
   $("cap-res").innerHTML = sc.pct >= 95 ? "G'ildirak tekis. <b>Biznes ravon yuradi.</b>" : "Uzuq chiziq: ravon yurish. <b>Oltin chiziq: sizning yo'lingiz.</b>";
+  $("verdict").innerHTML = verdict().map(v => "<div><dt>" + v[0] + "</dt><dd>" + esc(v[1]) + "</dd></div>").join("");
   const secs = SECTIONS.map(s => Object.assign({ s }, score(s.items))), scored = secs.filter(x => x.max);
   const weak = scored.length ? scored.reduce((a, b) => b.pct < a.pct ? b : a) : null;
   $("rows").innerHTML = secs.map((x, i) => { const c = x.pct >= 80 ? "var(--ok)" : x.pct >= 50 ? "var(--gold)" : x.pct >= 25 ? "var(--mid)" : "var(--bad)";
@@ -714,6 +671,22 @@ function renderResult() {
   renderPlan();
   haptic(sc.pct >= 50 ? "success" : "warning");
 }
+function verdict() {
+  const sc = score(Q), g = gradeOf(sc.pct), V = [], secs = SECTIONS.map(s => Object.assign({ s }, score(s.items))).filter(x => x.max);
+  V.push(["Umumiy holat", sc.pct + "%, " + g.l + " daraja. " + g.t + ". " + g.d]);
+  if (secs.length) {
+    const best = secs.reduce((a, b) => b.pct > a.pct ? b : a), weak = secs.reduce((a, b) => b.pct < a.pct ? b : a);
+    V.push(["Tayanch bo'lim", best.pct >= 50 ? best.s.name + " (" + best.pct + "%). Bu bo'limdagi tartibni qolgan bo'limlarga namuna qiling." : "Hozircha birorta bo'lim 50% dan o'tmadi. Tizim qurishni poydevor savollardan boshlang."]);
+    V.push(["Eng zaif bo'g'in", weak.pct >= 80 ? "Zaif bo'lim yo'q. Barcha bo'limlar 80% dan yuqori." : weak.s.name + " (" + weak.pct + "%). G'ildirak aynan shu joyda eng ko'p qiyshaygan."]);
+  }
+  const ow = S.a[SECTIONS[5].items[0].id];
+  if (ow && ow !== "n") V.push(["Rahbarga bog'liqlik", ow === "h" ? "Past. Kompaniya rahbarsiz ham natija beradi." : ow === "q" ? "O'rta. Ayrim qarorlar hali ham faqat rahbarda qolgan." : "Yuqori. Rahbar ishdan chetlashsa, natija tushadi. Bu kengayishga asosiy to'siq."]);
+  const core = Q.filter(q => q.p === 3), c = v => core.filter(q => S.a[q.id] === v).length;
+  V.push(["Poydevor tizimlar", core.length + " ta poydevor tizimdan " + c("h") + " tasi to'liq ishlaydi, " + c("q") + " tasi qisman, " + c("y") + " tasi yo'q."]);
+  const top = tasks().slice(0, 3);
+  if (top.length) V.push(["Birinchi qadamlar", top.map((t, i) => (i + 1) + ") " + t.q.act).join(" ")]);
+  return V;
+}
 function renderPlan() {
   const all = tasks(), show = planAll ? all : all.slice(0, 12);
   $("plan-sub").textContent = all.length ? "Jami " + all.length + " ta vazifa. Har biriga mas'ul va muddat belgilang: ular hisobotga qo'shiladi." : "Kamchilik topilmadi. Tizimni shu darajada ushlab turing va har chorakda auditni takrorlang.";
@@ -724,7 +697,8 @@ function renderPlan() {
 }
 function report() {
   const sc = score(Q), g = gradeOf(sc.pct), L = [];
-  L.push("BIZNES TIZIMI AUDITI" + (S.company ? " | " + S.company : ""), "Sana: " + today(), "", "Umumiy natija: " + sc.pct + "% (" + sc.got + " / " + sc.max + " ball)", "Daraja: " + g.l + ". " + g.t, "", "BO'LIMLAR");
+  L.push("BIZNES TIZIMI AUDITI" + (S.company ? " | " + S.company : ""), "Sana: " + today(), "", "Umumiy natija: " + sc.pct + "% (" + sc.got + " / " + sc.max + " ball)", "Daraja: " + g.l + ". " + g.t, "", "XULOSA");
+  verdict().slice(1).forEach(v => L.push("- " + v[0] + ": " + v[1])); L.push("", "BO'LIMLAR");
   SECTIONS.forEach(s => { const c = score(s.items); L.push("- " + s.name + ": " + (c.max ? c.pct + "%" : "baholanmadi")); });
   const all = tasks(); if (all.length) L.push("", "HARAKATLAR REJASI");
   ["hi", "mid", "low"].forEach(pr => { const l = all.filter(t => t.pr === pr); if (!l.length) return; L.push("", PR[pr][0] + ":");
@@ -795,7 +769,7 @@ let armT; $("reset").addEventListener("click", e => {
 /* ===================== ISHGA TUSHIRISH ===================== */
 $("scale").innerHTML = GRADES.map(g => "<div><i>" + g.l + "</i><span><b>" + g.min + "% dan. " + g.range + "</b>" + esc(g.t) + "</span></div>").join("");
 $("print").hidden = !(BUILD === "tg" && !TG);
-demoAns = {}; $("cap-home").innerHTML = "Namuna: <b>tizim mukammal</b>, g'ildirak tekis";
+demoAns = {};
 load(); tgInit();
 cloudRestore(() => { go("home"); requestAnimationFrame(frame); });
 </script>
